@@ -127,6 +127,15 @@ input[type=range]:focus-visible{outline:2px solid var(--mint);outline-offset:6px
 .ibtn:hover{color:var(--mint)}
 .ibtn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:4px}
 
+.brow{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:center;
+  padding:9px 2px;border-bottom:1px solid var(--line-soft);font-size:13px}
+.brow:last-child{border-bottom:0}
+.brow.head{color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;border-bottom-color:var(--line)}
+.brow .bm{color:#cfe0e6}
+.brow .bb{font-family:var(--mono);font-size:12.5px;color:var(--mint)}
+.brow .bt{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.brow small{display:block;font-family:var(--bn);font-size:10.5px;color:var(--dim);letter-spacing:0;text-transform:none}
+
 .gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px}
 .gitem{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--panel-2);border:1px solid var(--line-soft);
   border-radius:9px;padding:10px 12px;cursor:pointer;font-family:var(--bn);color:var(--muted);transition:.15s}
@@ -364,6 +373,11 @@ footer a{color:var(--mint-dim);text-decoration:none}
         <h3>সব টার্মের ব্যাখ্যা — যেকোনোটায় ক্লিক করুন</h3>
       </div>
       <div class="gloss" id="gloss"></div>
+
+      <div class="funnel-head" style="margin-bottom:11px">
+        <h3>HEALTHY BENCHMARK</h3>
+      </div>
+      <div id="bench"></div>
     </div>
 
     <div class="panel">
@@ -547,8 +561,8 @@ const STD = {
   cpm:{
     title:"CPM — প্রতি ১০০০ ইম্প্রেশনের খরচ",
     what:"আপনার অ্যাড ১০০০ বার দেখাতে Meta কত নেয়। এটা মিডিয়ার পাইকারি দাম — বাকি সব খরচ এখান থেকেই শুরু।",
-    bands:()=>[{lab:"সস্তা",min:null,max:200,tone:"good"},{lab:"স্বাভাবিক",min:200,max:400,tone:"warn"},{lab:"চড়া",min:400,max:null,tone:"bad"}],
-    note:"বাংলাদেশে ইকমার্স ফিডে সাধারণত ৳১৫০–৪০০ CPM দেখা যায়; রিলস/অডিয়েন্স নেটওয়ার্কে কম, রিটার্গেটিং-এ বেশি।",
+    bands:()=>[{lab:"স্বাস্থ্যকর",min:null,max:305,tone:"good"},{lab:"একটু চড়া",min:305,max:500,tone:"warn"},{lab:"অতিরিক্ত",min:500,max:null,tone:"bad"}],
+    note:()=>`বেঞ্চমার্ক: $0.80 – $2.50 (≈ ${money(98)} – ${money(305)})। রিলস/অডিয়েন্স নেটওয়ার্কে কম, রিটার্গেটিং ও Eid/Q4-এ বেশি।`,
     drivers:["অডিয়েন্স কত সরু (সরু = দামি)","সিজন/প্রতিযোগিতা — Eid, Q4, ১১.১১","Relevance বা CTR — Meta ভালো অ্যাডকে ছাড় দেয়","Frequency — একই মানুষকে বেশি দেখালে দাম বাড়ে","Placement — Reels/Story সাধারণত সস্তা"],
     action:"CPM বেশি হলে আগে অডিয়েন্স broad করুন ও নতুন ক্রিয়েটিভ দিন — CPM কমানোর সবচেয়ে সস্তা উপায় হলো ভালো CTR।",
     scale:"CPM কম মানে ইনভেন্টরি সস্তা — বাজেট বাড়ানোর ভালো সময়। CPM চড়া থাকলে বাজেট বাড়ালে খরচই শুধু বাড়বে।"
@@ -556,8 +570,8 @@ const STD = {
   ctr:{
     title:"CTR — ক্লিক-থ্রু রেট (লিংক ক্লিক)",
     what:"যত মানুষ অ্যাড দেখেছে তার কত শতাংশ লিংকে ক্লিক করেছে। এটাই আপনার হুকের রিপোর্ট কার্ড।",
-    bands:()=>[{lab:"দুর্বল",min:null,max:0.8,tone:"bad"},{lab:"স্বাভাবিক",min:0.8,max:1.5,tone:"warn"},{lab:"ভালো",min:1.5,max:null,tone:"good"}],
-    note:"লিংক CTR ১%-এর নিচে নামলে ক্রিয়েটিভ সমস্যা ধরে নিন। ২%+ হলে সেটা winning creative-এর লক্ষণ।",
+    bands:()=>[{lab:"দুর্বল",min:null,max:1,tone:"bad"},{lab:"স্বাভাবিক",min:1,max:2,tone:"warn"},{lab:"স্বাস্থ্যকর",min:2,max:null,tone:"good"}],
+    note:"বেঞ্চমার্ক: ২%+ (লিংক CTR)। ১%-এর নিচে নামলে ক্রিয়েটিভ সমস্যা ধরে নিন।",
     drivers:["প্রথম ৩ সেকেন্ডের হুক ও থাম্বনেইল","অফার কতটা স্পষ্ট","অডিয়েন্স ও মেসেজের মিল","Frequency — একই অ্যাড বারবার দেখলে CTR পড়ে"],
     action:"CTR কম হলে বাজেট নয়, ক্রিয়েটিভ বদলান। ৩–৫টা ভিন্ন হুক টেস্ট করুন একই অফারে।",
     scale:"CTR ভালো থাকলে অডিয়েন্স broad করেও পারফরম্যান্স ধরে রাখা যায় — horizontal scaling-এর সবুজ সংকেত।"
@@ -583,8 +597,8 @@ const STD = {
   cpc:{
     title:"CPC — প্রতি লিংক ক্লিকের খরচ",
     what:"একজন মানুষকে সাইটে আনতে কত খরচ হচ্ছে। CPC = CPM ÷ (CTR × ১০) — তাই CTR বাড়লে CPC নিজেই কমে।",
-    bands:()=>[{lab:"সস্তা",min:null,max:15,tone:"good"},{lab:"স্বাভাবিক",min:15,max:30,tone:"warn"},{lab:"চড়া",min:30,max:null,tone:"bad"}],
-    note:"বাংলাদেশি ইকমার্সে ৳৮–২৫ CPC সাধারণ। ৳৪০+ হলে হয় CPM চড়া, নয়তো CTR ভাঙা।",
+    bands:()=>[{lab:"স্বাস্থ্যকর",min:null,max:15,tone:"good"},{lab:"একটু বেশি",min:15,max:30,tone:"warn"},{lab:"চড়া",min:30,max:null,tone:"bad"}],
+    note:()=>`বেঞ্চমার্ক: $0.03 – $0.12 (≈ ${money(4)} – ${money(15)})। ${money(40)}-এর বেশি হলে হয় CPM চড়া, নয়তো CTR ভাঙা।`,
     drivers:["CPM","CTR","অডিয়েন্সের ক্লিক-প্রবণতা"],
     action:"CPC বেশি হলে আলাদা করে দেখুন — CPM সমস্যা (অডিয়েন্স/সিজন) নাকি CTR সমস্যা (ক্রিয়েটিভ)।",
     scale:"CPC স্থিতিশীল রেখে বাজেট বাড়াতে পারলে সেটাই সত্যিকারের স্কেলিং। বাজেট বাড়ানোর পর CPC ২০%+ বাড়লে থামুন।"
@@ -603,7 +617,7 @@ const STD = {
     what:"ক্লিকের পর যতজনের পেজ আসলে লোড হয়েছে। Clicks আর LP Views-এর ফারাকটাই আপনার সাইট স্পিডের বিল।",
     bands:()=>[{lab:"বড় লিক",min:null,max:65,tone:"bad"},{lab:"চলনসই",min:65,max:80,tone:"warn"},{lab:"স্বাস্থ্যকর",min:80,max:null,tone:"good"},{isRate:true}],
     rate:r=>r.lpRate, rateLab:"Click → LP View রেট",
-    note:"৩ সেকেন্ডের বেশি লোড নিলে প্রায় অর্ধেক মোবাইল ইউজার চলে যায় — এই টাকাটা পুরোপুরি নষ্ট।",
+    note:"বেঞ্চমার্ক: ৮০–৯০%। ৩ সেকেন্ডের বেশি লোড নিলে প্রায় অর্ধেক মোবাইল ইউজার চলে যায় — এই টাকাটা পুরোপুরি নষ্ট।",
     drivers:["সাইট স্পিড ও হোস্টিং","ভারী ইমেজ/পপ-আপ","ভুল বা ভাঙা লিংক"],
     action:"রেট ৭০%-এর নিচে হলে PageSpeed টেস্ট করুন, ইমেজ কমপ্রেস করুন, পপ-আপ দেরিতে দেখান।",
     scale:"এই লিক না সারিয়ে বাজেট বাড়ানো মানে ফুটো বালতিতে বেশি পানি ঢালা।"
@@ -611,9 +625,9 @@ const STD = {
   atc:{
     title:"Add to Cart — কার্টে যোগ",
     what:"পেজে ঢোকা মানুষের মধ্যে কতজন কার্টে দিল। এটা অফার ও প্রোডাক্ট পেজের রায়।",
-    bands:()=>[{lab:"দুর্বল",min:null,max:15,tone:"bad"},{lab:"স্বাভাবিক",min:15,max:25,tone:"warn"},{lab:"ভালো",min:25,max:null,tone:"good"},{isRate:true}],
+    bands:()=>[{lab:"দুর্বল",min:null,max:8,tone:"bad"},{lab:"স্বাস্থ্যকর",min:8,max:15,tone:"warn"},{lab:"চমৎকার",min:15,max:null,tone:"good"},{isRate:true}],
     rate:r=>r.atcRate, rateLab:"LP View → ATC রেট",
-    note:"বাস্তব ইকমার্সে ৮–১৫% সাধারণ; এই ল্যাবের বেসলাইন ২৪% ধরা হয়েছে যাতে ফানেলের প্রভাবটা পরিষ্কার দেখা যায়।",
+    note:"বেঞ্চমার্ক: ৮–১৫%। এই সিমুলেটরের বেসলাইন ২৪% ধরা হয়েছে যাতে ফানেলের প্রভাবটা পরিষ্কার দেখা যায় — তাই এখানকার সংখ্যা বাস্তবের চেয়ে একটু আশাবাদী।",
     drivers:["প্রোডাক্ট পেজের ছবি, দাম, রিভিউ","ডেলিভারি চার্জ কোথায় দেখাচ্ছে","CTA বাটন কত স্পষ্ট","অ্যাডে দেওয়া প্রতিশ্রুতি পেজে আছে কি না"],
     action:"অ্যাডের অফার আর পেজের হেডলাইন এক করুন — মিল না থাকলে মানুষ ফিরে যায়।",
     scale:"ATC রেট ভালো কিন্তু Purchase কম হলে সমস্যা checkout-এ, ট্রাফিকে নয়।"
@@ -622,7 +636,7 @@ const STD = {
     title:"Purchases — মোট অর্ডার",
     what:"পুরো ফানেলের শেষ ফল। Meta-র অ্যালগরিদমও এই সিগন্যাল দিয়েই শেখে।",
     bands:()=>[{lab:"লার্নিং শেষ হয়নি",min:null,max:50,tone:"bad"},{lab:"স্থিতিশীল হচ্ছে",min:50,max:100,tone:"warn"},{lab:"পরিণত",min:100,max:null,tone:"good"},{isPeriod:true}],
-    note:"Meta-র নিয়ম: প্রতি ad set-এ সপ্তাহে ~৫০ কনভার্সন হলে learning phase শেষ হয় ও ডেলিভারি স্থিতিশীল হয়।",
+    note:"বেঞ্চমার্ক ভাঙা যায় দুই ধাপে — ATC → Checkout ৫০–৭০%, Checkout → Purchase ৪০–৬০% (এই ল্যাবে দুটো এক করে দেখানো)। Meta-র নিয়ম: প্রতি ad set-এ সপ্তাহে ~৫০ কনভার্সন হলে learning phase শেষ হয়।",
     drivers:["পুরো ফানেলের প্রতিটি ধাপ","অফার ও চেকআউট","বাজেট (ভলিউম)"],
     action:"সপ্তাহে ৫০ অর্ডারের নিচে থাকলে ad set একসাথে করুন (কনসলিডেট), আলাদা করে ভাঙবেন না।",
     scale:"সাপ্তাহিক ৫০ কনভার্সন পার হলেই vertical scaling শুরু করার আসল সময়।"
@@ -631,7 +645,7 @@ const STD = {
     title:"CPA — প্রতি অর্ডারে খরচ",
     what:"একটা অর্ডার আনতে বিজ্ঞাপনে কত খরচ হলো। আপনার মার্জিনের সাথে তুলনা না করলে এই নাম্বারের কোনো মানে নেই।",
     bands:()=>{const b=beCpa();return[{lab:"লাভজনক",min:null,max:b*0.7,tone:"good"},{lab:"ব্রেকইভেনের কাছে",min:b*0.7,max:b,tone:"warn"},{lab:"লস",min:b,max:null,tone:"bad"}];},
-    note:()=>`আপনার মার্জিন ${S.margin}% ও AOV ${money(S.aov)} ধরে ব্রেকইভেন CPA = ${money(beCpa())}। এর নিচে থাকলেই কেবল লাভ।`,
+    note:()=>`রেফারেন্স বেঞ্চমার্ক < $3.00 (≈ ${money(366)}), তবে আসল সীমা আপনার মার্জিন: ${S.margin}% মার্জিন ও AOV ${money(S.aov)} ধরে ব্রেকইভেন CPA = ${money(beCpa())}। এর নিচে থাকলেই কেবল লাভ।`,
     drivers:["CPC (ট্রাফিকের দাম)","কনভার্শন রেট (পেজ + অফার)","AOV নয় — CPA-তে AOV-র হাত নেই"],
     action:"CPA বেশি হলে দুটো পথ: ট্রাফিক সস্তা করুন (ক্রিয়েটিভ/অডিয়েন্স) অথবা কনভার্শন বাড়ান (পেজ/অফার)।",
     scale:"CPA ব্রেকইভেনের ৭০%-এর নিচে থাকলে স্কেল করার জায়গা আছে — বাজেট বাড়ালে CPA কিছুটা বাড়বে, সেই বাফারটা দরকার।"
@@ -640,7 +654,7 @@ const STD = {
     title:"ROAS — বিজ্ঞাপন খরচের বিপরীতে আয়",
     what:"১ টাকা খরচে কত টাকা বিক্রি এসেছে। মার্জিন ছাড়া ROAS বিচার করা যায় না।",
     bands:()=>{const b=beRoas();return[{lab:"লস",min:null,max:b,tone:"bad"},{lab:"ব্রেকইভেন জোন",min:b,max:b*1.5,tone:"warn"},{lab:"স্কেল করার মতো",min:b*1.5,max:null,tone:"good"}];},
-    note:()=>`${S.margin}% মার্জিনে ব্রেকইভেন ROAS = ${nd(beRoas(),2)}x। স্কেল করার আগে অন্তত ${nd(beRoas()*1.5,2)}x চাই, কারণ বাজেট বাড়ালে ROAS সাধারণত কিছুটা পড়ে।`,
+    note:()=>`সাধারণ বেঞ্চমার্ক 3.0x+, কিন্তু আসল মাপকাঠি মার্জিন: ${S.margin}% মার্জিনে ব্রেকইভেন ROAS = ${nd(beRoas(),2)}x। স্কেল করার আগে অন্তত ${nd(beRoas()*1.5,2)}x চাই, কারণ বাজেট বাড়ালে ROAS সাধারণত কিছুটা পড়ে।`,
     drivers:["AOV","CPA","পুরো ফানেলের কনভার্শন রেট"],
     action:"ROAS ব্রেকইভেনের নিচে থাকলে বাজেট বাড়াবেন না — আগে বটলনেক সারান।",
     scale:"ব্রেকইভেনের ১.৫× এর উপরে + যথেষ্ট ডেটা = প্রতি ২ দিনে ২০–৩০% বাজেট বাড়ানোর সবুজ সংকেত।"
@@ -761,6 +775,27 @@ function paintTrack(key){
     `linear-gradient(90deg, var(--mint-dim) ${S[key]}%, #22323c ${S[key]}%)`);
 }
 
+/* ============ Healthy Benchmark টেবিল ============ */
+const BENCHTABLE=[
+  {m:"CPM",k:"cpm",b:"$0.80 – $2.50",t:()=>`${money(0.80*usdRate)} – ${money(2.50*usdRate)}`,s:"প্রতি ১০০০ ইম্প্রেশন"},
+  {m:"CTR",k:"ctr",b:"2%+",t:()=>"—",s:"লিংক ক্লিক"},
+  {m:"CPC",k:"cpc",b:"$0.03 – $0.12",t:()=>`${money(0.03*usdRate)} – ${money(0.12*usdRate)}`,s:"প্রতি লিংক ক্লিক"},
+  {m:"LPV Rate",k:"lpv",b:"80 – 90%",t:()=>"—",s:"Click → LP View"},
+  {m:"ATC Rate",k:"atc",b:"8 – 15%",t:()=>"—",s:"LP View → Add to Cart"},
+  {m:"Checkout Rate",k:"purchases",b:"50 – 70%",t:()=>"—",s:"ATC → Initiate Checkout"},
+  {m:"Purchase Rate",k:"purchases",b:"40 – 60%",t:()=>"—",s:"Checkout → Purchase"},
+  {m:"CPA",k:"cpa",b:"< $3.00",t:()=>`< ${money(3*usdRate)}`,s:"প্রোডাক্ট অনুযায়ী বদলাবে"},
+  {m:"ROAS",k:"roas",b:"3.0x+",t:()=>"—",s:"মার্জিন অনুযায়ী ব্রেকইভেন আলাদা"}
+];
+function renderBench(){
+  $("bench").innerHTML =
+    `<div class="brow head"><span>Metric</span><span>Healthy Benchmark</span><span>টাকায়</span></div>` +
+    BENCHTABLE.map(r=>`<div class="brow" data-metric="${r.k}" style="cursor:pointer">
+      <span class="bm">${r.m}<small>${r.s}</small></span>
+      <span class="bb">${r.b}</span>
+      <span class="bt">${r.t()}</span></div>`).join("");
+}
+
 function render(r, withDelta){
   for(const g in GROUPS) for(const k of GROUPS[g]){
     $("m-"+k).textContent = fmt(k,r[k]);
@@ -785,6 +820,7 @@ function render(r, withDelta){
     $("fv-"+f.k).textContent = nd(v, v>=1000?0:f.d);
   }
 
+  renderBench();
   renderProjection(r);
   renderDiagnosis(r);
 }
