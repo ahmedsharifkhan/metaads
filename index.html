@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahmed Sharif Khan Noor — Meta Ads Metrics Lab</title>
+<meta name="description" content="Meta Ads ফুল-ফানেল সিমুলেটর: CPM থেকে ROAS পর্যন্ত কোন মেট্রিক কেন বদলায়, স্ট্যান্ডার্ড কত, আর কখন কীভাবে স্কেল করবেন।">
+<meta name="theme-color" content="#080d12">
+<meta property="og:title" content="Ahmed Sharif Khan Noor — Meta Ads Metrics Lab">
+<meta property="og:description" content="স্লাইডার নাড়ান, পুরো ফানেলের কার্যকারণ দেখুন। মেট্রিক স্ট্যান্ডার্ড, স্কেলিং প্ল্যান আর মাল্টি-ডে প্রোজেকশন সহ।">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23080d12'/><path d='M7 22V10M12 22v-6M17 22V13M22 22v-9M27 22V8' stroke='%234fd8c4' stroke-width='2.4' stroke-linecap='round' fill='none'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080d12; --panel:#0e161d; --panel-2:#111c24; --panel-3:#0d161d;
+  --line:rgba(120,160,180,.16); --line-soft:rgba(120,160,180,.09);
+  --ink:#e8f1f5; --muted:#8ea3b0; --dim:#5f7484;
+  --mint:#4fd8c4; --mint-dim:#2f8f83; --violet:#a58bf5;
+  --up:#4fd8a8; --down:#f4776b; --warn:#f0b46a;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --bn:"Hind Siliguri","Noto Sans Bengali","Nirmala UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;padding:0 0 56px;
+  background:
+    radial-gradient(900px 500px at 78% -10%, rgba(79,216,196,.07), transparent 60%),
+    radial-gradient(700px 420px at 8% 0%, rgba(165,139,245,.07), transparent 60%),
+    var(--bg);
+  color:var(--ink);font-family:var(--bn);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+.wrap{max-width:1380px;margin:0 auto;padding:20px 16px}
+
+header{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;
+  padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.brand h1{margin:0;font-size:21px;font-weight:700;letter-spacing:.01em}
+.brand .sub{font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--mint);margin-top:4px}
+.brand p{margin:8px 0 0;color:var(--muted);font-size:13.5px;max-width:62ch}
+.presets{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--bn);font-size:12.5px;color:var(--muted);background:var(--panel);
+  border:1px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer;transition:.15s}
+.chip:hover,.chip:focus-visible{color:var(--mint);border-color:var(--mint-dim);background:#0f1d24;outline:none}
+.chip.reset{color:var(--dim)}
+
+.grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.panel + .panel{margin-top:16px}
+.side{position:sticky;top:16px}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin:0 0 13px}
+.sec-title{font-size:15px;letter-spacing:.14em;color:#cfe3e8;margin:24px 0 11px;font-weight:600}
+.sec-title:first-child{margin-top:0}
+
+/* segmented */
+.seg{display:flex;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:4px}
+.seg button{flex:1;font-family:var(--bn);font-size:12.5px;color:var(--muted);background:transparent;
+  border:0;border-radius:6px;padding:7px 4px;cursor:pointer;transition:.15s}
+.seg button[aria-pressed="true"]{background:rgba(79,216,196,.13);color:var(--mint)}
+
+.obj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:7px}
+.obj-grid.two{grid-template-columns:repeat(2,1fr)}
+.obj{font-family:var(--bn);font-size:12.5px;color:var(--muted);cursor:pointer;background:transparent;
+  border:1px solid var(--line);border-radius:8px;padding:8px 3px;transition:.15s}
+.obj:hover{color:var(--ink);border-color:var(--mint-dim)}
+.obj[aria-pressed="true"]{color:var(--mint);border-color:var(--mint);background:rgba(79,216,196,.08)}
+.obj-note{font-size:13px;color:#c7d8de;margin:13px 0 18px;padding-left:12px;border-left:2px solid var(--mint-dim)}
+
+.field{margin-bottom:17px}
+.field-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.field-head label{font-size:14px;color:#dbe8ec}
+.val{font-family:var(--mono);font-size:14px;color:var(--mint)}
+.hint{font-size:11.5px;color:var(--dim);line-height:1.5;margin:9px 0 0}
+
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:26px;background:transparent;
+  margin:6px 0 0;cursor:pointer;touch-action:pan-y}
+input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:var(--track,#22323c)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--mint);margin-top:-6.5px;border:0;box-shadow:0 0 0 4px rgba(79,216,196,.14)}
+input[type=range]::-moz-range-track{height:3px;border-radius:2px;background:#22323c}
+input[type=range]::-moz-range-progress{height:3px;border-radius:2px;background:var(--mint-dim)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border:0;border-radius:50%;background:var(--mint)}
+input[type=range]:focus-visible{outline:2px solid var(--mint);outline-offset:6px;border-radius:4px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:16px}
+.num label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.num input,.num select{width:100%;font-family:var(--mono);font-size:15px;color:var(--ink);background:var(--panel-2);
+  border:1px solid var(--line);border-radius:8px;padding:10px 11px}
+.num input:focus,.num select:focus{outline:none;border-color:var(--mint-dim)}
+
+/* metric cards */
+.tip{font-size:11.5px;color:var(--dim);margin:0 0 12px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.card{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:12px;padding:13px 14px 12px;
+  transition:.18s;cursor:pointer;text-align:left;font-family:inherit;color:inherit;width:100%;position:relative}
+.card:hover{border-color:rgba(79,216,196,.35);transform:translateY(-1px)}
+.card:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.card.focus{border-color:rgba(79,216,196,.4);box-shadow:inset 0 0 0 1px rgba(79,216,196,.07)}
+.card .k{font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:5px;border-bottom:1px dashed rgba(120,160,180,.3);padding-bottom:3px}
+.card .k::after{content:"ⓘ";font-size:11px;letter-spacing:0;color:var(--mint-dim)}
+.card:hover .k,.card:focus-visible .k{color:var(--muted);border-bottom-color:var(--mint-dim)}
+.card:hover .k::after{color:var(--mint)}
+.card .v{font-family:var(--mono);font-size:24px;font-weight:500;margin-top:6px;letter-spacing:-.01em;word-break:break-all}
+.card .d{font-family:var(--mono);font-size:11px;margin-top:5px;color:var(--dim);min-height:16px}
+.d.good{color:var(--up)} .d.bad{color:var(--down)}
+.card .badge{position:absolute;top:11px;right:11px;width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.badge.good{background:var(--up)} .badge.warn{background:var(--warn)} .badge.bad{background:var(--down)}
+
+/* funnel */
+.funnel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:26px 0 13px}
+.funnel-head h3{margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--dim)}
+.mini-btn{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--dim);cursor:pointer;
+  background:transparent;border:1px solid var(--line);border-radius:6px;padding:5px 9px}
+.mini-btn:hover{color:var(--mint);border-color:var(--mint-dim)}
+.frow{display:grid;grid-template-columns:104px minmax(0,1fr) 76px;gap:12px;align-items:center;margin-bottom:9px}
+.frow .fl{font-size:13px;color:var(--muted);font-family:var(--bn);background:transparent;border:0;padding:0;
+  text-align:left;cursor:pointer;border-bottom:1px dashed rgba(120,160,180,.28);justify-self:start}
+.frow .fl:hover{color:var(--mint);border-bottom-color:var(--mint-dim)}
+.frow .fl:focus-visible{outline:2px solid var(--mint);outline-offset:3px;border-radius:3px}
+
+.lab-wrap{display:inline-flex;align-items:center;gap:6px}
+.ibtn{background:transparent;border:0;color:var(--mint-dim);font-size:13px;line-height:1;cursor:pointer;padding:2px}
+.ibtn:hover{color:var(--mint)}
+.ibtn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:4px}
+
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px}
+.gitem{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--panel-2);border:1px solid var(--line-soft);
+  border-radius:9px;padding:10px 12px;cursor:pointer;font-family:var(--bn);color:var(--muted);transition:.15s}
+.gitem:hover{border-color:var(--mint-dim);color:var(--ink)}
+.gitem:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.gitem b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--mint);font-weight:500}
+.gitem span{font-size:11.5px;line-height:1.45;color:var(--dim)}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}
+.chain i{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink);background:var(--panel-2);
+  border:1px solid var(--line-soft);border-radius:6px;padding:4px 8px}
+.chain u{text-decoration:none;color:var(--dim);font-size:12px}
+.ftrack{height:11px;border-radius:6px;background:#16232b;overflow:hidden}
+.fbar{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--violet),var(--mint));
+  transition:width .35s cubic-bezier(.4,0,.2,1);min-width:10px}
+.frow .fv{font-family:var(--mono);font-size:12.5px;text-align:right;color:#cfe0e6}
+
+/* scaling */
+.verdict{border-radius:10px;padding:14px 16px;font-size:13.5px;line-height:1.7;
+  background:rgba(79,216,196,.06);border:1px solid rgba(79,216,196,.22)}
+.verdict.warn{background:rgba(240,180,106,.07);border-color:rgba(240,180,106,.28)}
+.verdict.bad{background:rgba(244,119,107,.07);border-color:rgba(244,119,107,.28)}
+.verdict b{color:var(--ink)}
+.vtitle{font-size:15px;font-weight:600;margin-bottom:7px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid currentColor;border-radius:999px;padding:3px 9px}
+.steps{margin:11px 0 0;padding-left:18px}
+.steps li{margin-bottom:6px;font-size:13.5px;color:#cbdbe1}
+.ladder{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.ladder span{font-family:var(--mono);font-size:11.5px;color:var(--muted);background:var(--panel-2);
+  border:1px solid var(--line);border-radius:7px;padding:6px 10px}
+.ladder span b{color:var(--mint);font-weight:500}
+
+/* day chart */
+.daystats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 18px}
+.dstat{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:10px;padding:11px 12px}
+.dstat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.dstat .v{font-family:var(--mono);font-size:18px;margin-top:5px}
+.chart{display:flex;align-items:flex-end;gap:5px;height:120px;padding:0 2px;overflow-x:auto;position:relative}
+.chart .col{flex:1 0 16px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:5px}
+.chart .bar{width:100%;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,var(--mint),var(--mint-dim));
+  min-height:3px;transition:height .3s}
+.chart .bar.low{background:linear-gradient(180deg,var(--warn),#8a6532)}
+.chart .bar.neg{background:linear-gradient(180deg,var(--down),#8a3c34)}
+.chart .cl{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.beline{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:8px}
+
+/* diagnosis */
+.diag-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:18px}
+.stage-row{display:grid;grid-template-columns:minmax(0,1fr) 64px 84px;gap:10px;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.stage-row:last-child{border-bottom:0}
+.stage-row .sv{font-family:var(--mono);font-size:12.5px;text-align:right}
+.meter{height:5px;border-radius:3px;background:#16232b;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:3px;background:var(--mint);transition:width .3s}
+.meter i.warn{background:var(--warn)} .meter i.bad{background:var(--down)}
+.sens-row{display:grid;grid-template-columns:minmax(0,140px) 1fr 60px;gap:10px;align-items:center;margin-bottom:10px;font-size:13px}
+.sens-row .sl{color:var(--muted)}
+.sbar{height:7px;border-radius:4px;background:#16232b;overflow:hidden}
+.sbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--mint-dim),var(--mint))}
+.sens-row .sp{font-family:var(--mono);font-size:12px;text-align:right;color:var(--up)}
+
+/* log */
+.log{display:flex;flex-direction:column;gap:10px;max-height:400px;overflow-y:auto;padding-right:5px}
+.log::-webkit-scrollbar{width:6px}
+.log::-webkit-scrollbar-thumb{background:#22323c;border-radius:3px}
+.entry{border:1px solid var(--line-soft);border-left:2px solid var(--mint-dim);background:var(--panel-3);
+  border-radius:0 10px 10px 0;padding:11px 14px;font-size:13.5px;line-height:1.75;animation:slide .28s ease-out}
+.entry.neutral{border-left-color:#3a4c58}
+.entry.bad{border-left-color:var(--down)}
+.entry.warn{border-left-color:var(--warn)}
+.entry .tag{color:var(--warn);font-weight:600}
+.entry .n{font-family:var(--mono);color:var(--mint);font-size:12.5px}
+.entry .n.bad{color:var(--down)}
+.entry .t{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--dim);margin-bottom:5px;text-transform:uppercase}
+.empty{color:var(--dim);font-size:13.5px;border:1px dashed var(--line);border-radius:10px;padding:15px}
+@keyframes slide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* modal */
+.backdrop{position:fixed;inset:0;background:rgba(4,8,11,.72);backdrop-filter:blur(3px);z-index:50;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.backdrop.on{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:620px;width:100%;
+  max-height:88vh;overflow-y:auto;padding:22px;animation:pop .2s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:none}}
+.modal h3{margin:0;font-size:18px}
+.mhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px}
+.xbtn{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;
+  width:32px;height:32px;font-size:17px;line-height:1;cursor:pointer;flex:0 0 auto}
+.xbtn:hover{color:var(--ink);border-color:var(--mint-dim)}
+.mval{font-family:var(--mono);font-size:32px;margin:10px 0 2px}
+.mlab{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.mblock{margin-top:18px}
+.mblock h4{margin:0 0 7px;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mint)}
+.mblock p{margin:0;font-size:13.5px;color:#cbdbe1;line-height:1.7}
+.mblock ul{margin:0;padding-left:18px;font-size:13.5px;color:#cbdbe1}
+.mblock ul li{margin-bottom:5px}
+.band{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:9px 12px;border-radius:8px;
+  border:1px solid var(--line-soft);margin-bottom:7px;font-size:13px;background:var(--panel-2)}
+.band.on{border-color:currentColor}
+.band.good{color:var(--up)} .band.warn{color:var(--warn)} .band.bad{color:var(--down)}
+.band .bl{color:inherit;font-weight:600}
+.band .br{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.band.on .br{color:var(--ink)}
+.band .me{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:inherit}
+
+footer{margin-top:24px;color:var(--dim);font-size:12px;text-align:center;line-height:1.9}
+footer a{color:var(--mint-dim);text-decoration:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+@media(max-width:1080px){
+  .grid{grid-template-columns:1fr}
+  .side{position:static}
+  .diag-grid{grid-template-columns:1fr}
+}
+@media(max-width:720px){
+  .wrap{padding:16px 12px}
+  .panel{padding:15px;border-radius:12px}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(142px,1fr));gap:9px}
+  .card .v{font-size:20px}
+  .daystats{grid-template-columns:repeat(2,1fr)}
+  .brand h1{font-size:18px}
+  .frow{grid-template-columns:82px minmax(0,1fr) 60px;gap:9px}
+  .frow .fl{font-size:12px}
+  .stage-row,.sens-row{grid-template-columns:minmax(0,1fr) 56px 70px;font-size:12.5px}
+  .backdrop{padding:0;align-items:flex-end}
+  .modal{max-height:92vh;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+  .mval{font-size:26px}
+  input[type=range]{height:34px}
+  input[type=range]::-webkit-slider-thumb{width:20px;height:20px;margin-top:-8.5px}
+  .obj-grid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <h1>Ahmed Sharif Khan Noor</h1>
+    <div class="sub">Meta Ads Metrics Lab</div>
+    <p>স্লাইডার নাড়ান — CPM থেকে ROAS পর্যন্ত পুরো চেইন কেন বদলাল তা নিচে ব্যাখ্যা হবে। যেকোনো মেট্রিক কার্ডে ক্লিক করলে তার স্ট্যান্ডার্ড, করণীয় আর স্কেলিং ইঙ্গিত দেখাবে।</p>
+  </div>
+  <div class="presets" id="presets">
+    <button class="chip" data-preset="baseline">বেসলাইন</button>
+    <button class="chip" data-preset="winner">উইনিং সেটআপ</button>
+    <button class="chip" data-preset="eid">Eid/Q4 রাশ</button>
+    <button class="chip" data-preset="fatigue">ক্রিয়েটিভ ফাটিগ</button>
+    <button class="chip" data-preset="narrow">ন্যারো অডিয়েন্স</button>
+    <button class="chip" data-preset="slowlp">স্লো ল্যান্ডিং পেজ</button>
+    <button class="chip reset" data-preset="baseline">রিসেট</button>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- ===== INPUTS ===== -->
+  <div class="side">
+    <div class="panel">
+      <p class="eyebrow">কারেন্সি</p>
+      <div class="seg" id="curSeg">
+        <button data-cur="BDT" aria-pressed="true">৳ টাকা (BDT)</button>
+        <button data-cur="USD" aria-pressed="false">$ ডলার (USD)</button>
+      </div>
+      <div class="num" id="rateWrap" style="margin-top:11px;display:none">
+        <label for="rate">১ ডলার = কত টাকা</label>
+        <input id="rate" type="number" min="1" step="0.5" value="122">
+      </div>
+
+      <p class="eyebrow" style="margin-top:22px">ক্যাম্পেইন ইনপুট</p>
+      <div style="font-size:14px;color:#dbe8ec;margin-bottom:9px">অবজেক্টিভ</div>
+      <div class="obj-grid">
+        <button class="obj" data-obj="awareness">Awareness</button>
+        <button class="obj" data-obj="traffic">Traffic</button>
+        <button class="obj" data-obj="engagement">Engagement</button>
+      </div>
+      <div class="obj-grid two">
+        <button class="obj" data-obj="leads">Leads</button>
+        <button class="obj" data-obj="sales" aria-pressed="true">Sales</button>
+      </div>
+      <p class="obj-note" id="objNote"></p>
+
+      <div id="sliders"></div>
+
+      <div class="two-col">
+        <div class="num">
+          <label for="budget">দৈনিক বাজেট (<span class="cs">৳</span>)</label>
+          <input id="budget" type="number" min="1" step="50" value="1000" inputmode="decimal">
+        </div>
+        <div class="num">
+          <label for="aov">AOV / গড় অর্ডার (<span class="cs">৳</span>)</label>
+          <input id="aov" type="number" min="1" step="50" value="900" inputmode="decimal">
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="num">
+          <label for="margin">প্রোডাক্ট মার্জিন (%)</label>
+          <input id="margin" type="number" min="1" max="95" step="1" value="30" inputmode="decimal">
+        </div>
+        <div class="num">
+          <label for="days">কত দিন চলছে</label>
+          <select id="days">
+            <option value="1">১ দিন</option>
+            <option value="3">৩ দিন</option>
+            <option value="7" selected>৭ দিন</option>
+            <option value="14">১৪ দিন</option>
+            <option value="30">৩০ দিন</option>
+          </select>
+        </div>
+      </div>
+      <p class="hint">মার্জিন দিয়ে ব্রেকইভেন ROAS বের হয়। দিনের সংখ্যা দিলে ফ্রিকোয়েন্সি বাড়ার প্রভাব ধরে পুরো পিরিয়ডের ফল আর স্কেলিং প্ল্যান হিসাব হয়।</p>
+    </div>
+  </div>
+
+  <!-- ===== OUTPUT ===== -->
+  <div>
+    <div class="panel">
+      <p class="tip">💡 যেকোনো মেট্রিক কার্ডে (CPM, CTR, CPC, ROAS… সবগুলোতে) ট্যাপ করুন — সংজ্ঞা, স্ট্যান্ডার্ড রেঞ্জ, করণীয় আর স্কেলিং ইঙ্গিত খুলবে। স্লাইডারের নামের পাশের ⓘ-তে চাপলে সেই লিভারের ব্যাখ্যা আসবে।</p>
+
+      <h2 class="sec-title">টপ অফ ফানেল — অ্যাটেনশন</h2>
+      <div class="cards" id="top"></div>
+
+      <h2 class="sec-title">মিড ফানেল — এনগেজমেন্ট</h2>
+      <div class="cards" id="mid"></div>
+
+      <h2 class="sec-title">বটম ফানেল — কনভার্সন</h2>
+      <div class="cards" id="bot"></div>
+
+      <div class="funnel-head">
+        <h3>FUNNEL FLOW</h3>
+        <button class="mini-btn" id="scaleBtn">স্কেল: লিনিয়ার</button>
+      </div>
+      <div id="funnel"></div>
+
+      <div class="funnel-head" style="margin-bottom:11px">
+        <h3>সব টার্মের ব্যাখ্যা — যেকোনোটায় ক্লিক করুন</h3>
+      </div>
+      <div class="gloss" id="gloss"></div>
+    </div>
+
+    <div class="panel">
+      <p class="eyebrow">ডেটা রেঞ্জ ও স্কেলিং প্ল্যান</p>
+      <div class="daystats" id="daystats"></div>
+      <div class="chart" id="chart"></div>
+      <p class="beline" id="beline"></p>
+      <div style="margin-top:16px" id="scaleAdvice"></div>
+    </div>
+
+    <div class="panel">
+      <p class="eyebrow">ডায়াগনোসিস — বটলনেক কোথায়?</p>
+      <div class="diag-grid">
+        <div>
+          <div class="verdict" id="verdict"></div>
+          <div style="margin-top:13px" id="stages"></div>
+        </div>
+        <div>
+          <p class="eyebrow" style="margin-bottom:12px">কোন লিভার নাড়ালে ROAS সবচেয়ে বেশি বাড়বে</p>
+          <div id="sens"></div>
+          <p class="hint" style="margin-top:13px">প্রতিটি লিভার ১০ পয়েন্ট ভালো করলে ROAS কত % বাড়ে — বর্তমান সেটআপ থেকেই হিসাব। যেটা সবচেয়ে উপরে, আজকের কাজ সেটাই।</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="eyebrow">কেন এমন হলো? (Causality Log)</p>
+      <div class="log" id="log">
+        <div class="empty">একটা স্লাইডার নাড়ান — এখানে ব্যাখ্যা আসবে যে কোন মেট্রিক কেন বদলাচ্ছে।</div>
+      </div>
+    </div>
+
+    <footer>
+      Ahmed Sharif Khan Noor — Meta Ads Metrics Lab · শেখার জন্য বানানো সিমুলেটর।<br>
+      নাম্বারগুলো Meta auction-এর সরলীকৃত মডেল; বাস্তবে learning phase, attribution window আর audience overlap-ও কাজ করে।
+    </footer>
+  </div>
+</div>
+</div>
+
+<!-- ===== METRIC MODAL ===== -->
+<div class="backdrop" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal" id="modal">
+    <div class="mhead">
+      <div>
+        <div class="mlab" id="mLab"></div>
+        <h3 id="mTitle"></h3>
+      </div>
+      <button class="xbtn" id="mClose" aria-label="বন্ধ করুন">✕</button>
+    </div>
+    <div class="mval" id="mVal"></div>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ======================= STATE ======================= */
+const S = {
+  objective:"sales",
+  creative:50, audience:50, competition:50, frequency:20, lpq:50, offer:50,
+  budget:1000,   // সবসময় BDT-তে রাখা
+  aov:900,       // BDT
+  margin:30, days:7
+};
+const CUR = {code:"BDT", sym:"৳", rate:1, dec:0};
+let usdRate = 122;
+
+/* ======================= MODEL =======================
+   স্ক্রিনশট থেকে ক্যালিব্রেট করা (সব টাকায়):
+   CTR       = (1.56 + .0223*(Creative-50)) * fatigue
+   Relevance = 1.4 + 2.25*CTR%
+   CPM       = 338 * f(Relevance) * f(Competition) * f(Audience) * f(Frequency)
+====================================================== */
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+
+function compute(s){
+  const fatigue   = clamp(1 - 0.00612*(s.frequency-20), .12, 1.35);
+  const ctr       = clamp((1.56 + 0.0223*(s.creative-50)) * fatigue, .05, 12);
+  const relevance = clamp(1.4 + 2.25*ctr, 1, 10);
+
+  const fRel  = 1.338 - 0.069*relevance;
+  const fComp = 1 + 0.0071*(s.competition-50);
+  const fAud  = 1 - 0.0063*(s.audience-50);
+  const fFreq = 1 + 0.004734*(s.frequency-20);
+  const cpm   = Math.max(20, 338*fRel*fComp*fAud*fFreq);
+
+  const impressions = s.budget/cpm*1000;
+  const clicks      = impressions*ctr/100;
+  const cpc         = clicks>0 ? s.budget/clicks : 0;
+
+  const lpRate  = clamp(0.686 + 0.00258*s.lpq, .18, .97);
+  const lpv     = clicks*lpRate;
+  const atcRate = clamp(0.17 + 0.0014*s.lpq + 0.0006*(s.offer-50), .02, .70);
+  const atc     = lpv*atcRate;
+  const buyRate = clamp(0.5756 + 0.0035*(s.offer-50), .08, .92);
+  const purchases = atc*buyRate;
+
+  const cpa     = purchases>0 ? s.budget/purchases : 0;
+  const revenue = purchases*s.aov;
+  const roas    = s.budget>0 ? revenue/s.budget : 0;
+
+  return {cpm,ctr,relevance,impressions,cpc,clicks,lpv,atc,purchases,cpa,revenue,roas,
+          lpRate:lpRate*100, atcRate:atcRate*100, buyRate:buyRate*100};
+}
+
+const beRoas = ()=> 100/Math.max(S.margin,1);            // ব্রেকইভেন ROAS
+const beCpa  = ()=> S.aov*S.margin/100;                  // ব্রেকইভেন CPA (BDT)
+
+/* ======================= FORMAT ======================= */
+const n0=v=>Math.round(v).toLocaleString("en-US");
+const nd=(v,d)=>v.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+function money(bdt){ return CUR.sym + nd(bdt/CUR.rate, CUR.dec); }
+function toBdt(x){ return x*CUR.rate; }
+function fromBdt(x){ return x/CUR.rate; }
+
+/* ======================= CONFIG ======================= */
+const SLIDERS=[
+  {key:"creative",   label:"Creative Quality (Hook)", hint:"ভালো হুক + প্রথম ৩ সেকেন্ড → বেশি মানুষ ক্লিক করে (CTR ↑)।"},
+  {key:"audience",   label:"Audience Broadness",      hint:"০ = খুব Narrow অডিয়েন্স (কম মানুষ, বেশি প্রতিযোগিতা), ১০০ = পুরো Broad (2M+)।"},
+  {key:"competition",label:"Market Competition / সিজন", hint:"Eid/Q4 সেলের সময় হাজারো advertiser একই অডিয়েন্সের জন্য bid করে → CPM বাড়ে।"},
+  {key:"frequency",  label:"Frequency / Ad Fatigue",  hint:"একই মানুষ বারবার একই অ্যাড দেখলে বিরক্ত হয় → CTR কম, CPM বাড়ে।"},
+  {key:"lpq",        label:"Landing Page Quality",    hint:"স্লো সাইট/দুর্বল পেজ → ক্লিক আসলেও Landing Page View কম যায়, ATC কমে।"},
+  {key:"offer",      label:"Offer Strength",          hint:"Free shipping / COD / সহজ checkout → Checkout→Purchase rate বাড়ে।"}
+];
+
+const M = {  // type: money | pct | score | i0 | i1 | i2 | x
+  cpm:{lab:"CPM", type:"money", good:"down"},
+  ctr:{lab:"CTR", type:"pct", good:"up"},
+  relevance:{lab:"Relevance", type:"score", good:"up"},
+  impressions:{lab:"Impressions", type:"i0", good:"up"},
+  cpc:{lab:"CPC", type:"money", good:"down", md:1},
+  clicks:{lab:"Clicks", type:"i1", good:"up"},
+  lpv:{lab:"LP Views", type:"i1", good:"up"},
+  atc:{lab:"Add to Cart", type:"i1", good:"up"},
+  purchases:{lab:"Purchases", type:"i2", good:"up"},
+  cpa:{lab:"CPA", type:"money", good:"down"},
+  roas:{lab:"ROAS", type:"x", good:"up"},
+  revenue:{lab:"Revenue", type:"money", good:"up"}
+};
+const GROUPS={top:["cpm","ctr","relevance","impressions"],
+              mid:["cpc","clicks","lpv","atc"],
+              bot:["purchases","cpa","roas","revenue"]};
+
+function fmt(k,v){
+  const m=M[k];
+  switch(m.type){
+    case "money": return CUR.sym + nd(v/CUR.rate, CUR.code==="USD" ? 2 : (m.md||0));
+    case "pct":   return nd(v,2)+"%";
+    case "score": return nd(v,1)+"/10";
+    case "i0":    return n0(v);
+    case "i1":    return nd(v,1);
+    case "i2":    return nd(v,2);
+    case "x":     return nd(v,2)+"x";
+  }
+}
+function decOf(k){
+  const m=M[k];
+  if(m.type==="money") return CUR.code==="USD" ? 2 : (m.md||0);
+  return {pct:2,score:1,i0:0,i1:1,i2:2,x:2}[m.type];
+}
+function dispVal(k,v){ return M[k].type==="money" ? v/CUR.rate : v; }
+
+const OBJ={
+  awareness:{name:"Awareness", note:"Awareness অবজেক্টিভে Meta সস্তায় বেশি মানুষকে দেখাতে চেষ্টা করে — CPM কম থাকতে পারে কিন্তু CTR নিয়ে মাথা ঘামায় না।", focus:["cpm","impressions","relevance"], kpi:"CPM ও Impressions"},
+  traffic:{name:"Traffic", note:"Traffic অবজেক্টিভে Meta এমন মানুষ খোঁজে যারা লিংকে ক্লিক করে অভ্যস্ত — CTR/CPC ভালো দেখাবে, কিন্তু ক্লিক মানেই কেনা নয়।", focus:["ctr","cpc","clicks","lpv"], kpi:"CTR ও CPC"},
+  engagement:{name:"Engagement", note:"Engagement অবজেক্টিভে Meta লাইক-কমেন্ট-শেয়ার করে এমন মানুষ খোঁজে — সস্তা এনগেজমেন্ট আসে, কিন্তু purchase intent কম থাকতে পারে।", focus:["ctr","cpc","relevance"], kpi:"CTR ও Relevance"},
+  leads:{name:"Leads", note:"Leads অবজেক্টিভে Meta ফর্ম/মেসেজ দেয় এমন মানুষ খোঁজে — CPA হিসাব হয় প্রতি লিডে, লিড কোয়ালিফাই করা আপনার দায়িত্ব।", focus:["lpv","atc","cpa"], kpi:"লিড রেট ও CPA"},
+  sales:{name:"Sales", note:"Sales অবজেক্টিভে Meta সরাসরি Purchase করবে এমন মানুষ খোঁজে — পুরা ফানেল (CPM→CTR→CPC→ATC→CPA→ROAS) সবচেয়ে বেশি প্রাসঙ্গিক এখানে।", focus:["purchases","cpa","roas","revenue"], kpi:"CPA ও ROAS"}
+};
+
+const FUNNEL=[
+  {k:"impressions",lab:"Impressions",d:0},{k:"clicks",lab:"Clicks",d:0},
+  {k:"lpv",lab:"LP Views",d:0},{k:"atc",lab:"Add to Cart",d:1},{k:"purchases",lab:"Purchases",d:1}
+];
+
+/* ============ মেট্রিক স্ট্যান্ডার্ড ও ব্যাখ্যা ============ */
+/* bands: min/max মূল ইউনিটে (টাকার ক্ষেত্রে BDT)। null = সীমাহীন */
+const STD = {
+  cpm:{
+    title:"CPM — প্রতি ১০০০ ইম্প্রেশনের খরচ",
+    what:"আপনার অ্যাড ১০০০ বার দেখাতে Meta কত নেয়। এটা মিডিয়ার পাইকারি দাম — বাকি সব খরচ এখান থেকেই শুরু।",
+    bands:()=>[{lab:"সস্তা",min:null,max:200,tone:"good"},{lab:"স্বাভাবিক",min:200,max:400,tone:"warn"},{lab:"চড়া",min:400,max:null,tone:"bad"}],
+    note:"বাংলাদেশে ইকমার্স ফিডে সাধারণত ৳১৫০–৪০০ CPM দেখা যায়; রিলস/অডিয়েন্স নেটওয়ার্কে কম, রিটার্গেটিং-এ বেশি।",
+    drivers:["অডিয়েন্স কত সরু (সরু = দামি)","সিজন/প্রতিযোগিতা — Eid, Q4, ১১.১১","Relevance বা CTR — Meta ভালো অ্যাডকে ছাড় দেয়","Frequency — একই মানুষকে বেশি দেখালে দাম বাড়ে","Placement — Reels/Story সাধারণত সস্তা"],
+    action:"CPM বেশি হলে আগে অডিয়েন্স broad করুন ও নতুন ক্রিয়েটিভ দিন — CPM কমানোর সবচেয়ে সস্তা উপায় হলো ভালো CTR।",
+    scale:"CPM কম মানে ইনভেন্টরি সস্তা — বাজেট বাড়ানোর ভালো সময়। CPM চড়া থাকলে বাজেট বাড়ালে খরচই শুধু বাড়বে।"
+  },
+  ctr:{
+    title:"CTR — ক্লিক-থ্রু রেট (লিংক ক্লিক)",
+    what:"যত মানুষ অ্যাড দেখেছে তার কত শতাংশ লিংকে ক্লিক করেছে। এটাই আপনার হুকের রিপোর্ট কার্ড।",
+    bands:()=>[{lab:"দুর্বল",min:null,max:0.8,tone:"bad"},{lab:"স্বাভাবিক",min:0.8,max:1.5,tone:"warn"},{lab:"ভালো",min:1.5,max:null,tone:"good"}],
+    note:"লিংক CTR ১%-এর নিচে নামলে ক্রিয়েটিভ সমস্যা ধরে নিন। ২%+ হলে সেটা winning creative-এর লক্ষণ।",
+    drivers:["প্রথম ৩ সেকেন্ডের হুক ও থাম্বনেইল","অফার কতটা স্পষ্ট","অডিয়েন্স ও মেসেজের মিল","Frequency — একই অ্যাড বারবার দেখলে CTR পড়ে"],
+    action:"CTR কম হলে বাজেট নয়, ক্রিয়েটিভ বদলান। ৩–৫টা ভিন্ন হুক টেস্ট করুন একই অফারে।",
+    scale:"CTR ভালো থাকলে অডিয়েন্স broad করেও পারফরম্যান্স ধরে রাখা যায় — horizontal scaling-এর সবুজ সংকেত।"
+  },
+  relevance:{
+    title:"Relevance / Quality Ranking",
+    what:"Meta আপনার অ্যাডকে প্রতিযোগীদের তুলনায় কতটা ভালো মনে করছে। ভালো র‍্যাংকিং মানে একই বিডে বেশি ডেলিভারি।",
+    bands:()=>[{lab:"নিচে",min:null,max:4,tone:"bad"},{lab:"মাঝামাঝি",min:4,max:6.5,tone:"warn"},{lab:"উপরে",min:6.5,max:null,tone:"good"}],
+    note:"Meta Ads Manager-এ এটা Quality / Engagement rate / Conversion rate ranking নামে তিনটা আলাদা কলামে আসে।",
+    drivers:["CTR — এটাই মূল ইনপুট","নেতিবাচক ফিডব্যাক (Hide ad)","ল্যান্ডিং পেজ অভিজ্ঞতা","ক্রিয়েটিভের নতুনত্ব"],
+    action:"র‍্যাংকিং নিচে থাকলে ক্রিয়েটিভ রিফ্রেশ করুন — Meta নিম্ন র‍্যাংকিংয়ের অ্যাডকে বেশি CPM দিয়ে শাস্তি দেয়।",
+    scale:"র‍্যাংকিং উপরে থাকলে স্কেল করলে CPM তুলনামূলক স্থিতিশীল থাকে।"
+  },
+  impressions:{
+    title:"Impressions — কতবার দেখানো হলো",
+    what:"আপনার বাজেট দিয়ে কেনা মোট ভিউ। Impressions = বাজেট ÷ CPM × ১০০০ — অর্থাৎ এটা সিদ্ধান্ত নয়, ফলাফল।",
+    bands:()=>[{lab:"সিগন্যাল কম",min:null,max:1000,tone:"bad"},{lab:"টেস্ট করার মতো",min:1000,max:5000,tone:"warn"},{lab:"পর্যাপ্ত ভলিউম",min:5000,max:null,tone:"good"}],
+    note:"দিনে ১০০০ ইম্প্রেশনের কম হলে কোনো সিদ্ধান্ত নেওয়ার মতো ডেটাই তৈরি হয় না — বাজেট বা অডিয়েন্স বাড়ান।",
+    drivers:["দৈনিক বাজেট","CPM","অডিয়েন্স সাইজ"],
+    action:"Impression কম হলে দেখুন CPM বেশি নাকি বাজেট কম — কারণটা আলাদা করে চিকিৎসা করুন।",
+    scale:"টেস্ট করার আগে প্রতিটি ক্রিয়েটিভকে অন্তত ২,০০০–৩,০০০ ইম্প্রেশন দিন, নাহলে বিচারটা ভুল হবে।"
+  },
+  cpc:{
+    title:"CPC — প্রতি লিংক ক্লিকের খরচ",
+    what:"একজন মানুষকে সাইটে আনতে কত খরচ হচ্ছে। CPC = CPM ÷ (CTR × ১০) — তাই CTR বাড়লে CPC নিজেই কমে।",
+    bands:()=>[{lab:"সস্তা",min:null,max:15,tone:"good"},{lab:"স্বাভাবিক",min:15,max:30,tone:"warn"},{lab:"চড়া",min:30,max:null,tone:"bad"}],
+    note:"বাংলাদেশি ইকমার্সে ৳৮–২৫ CPC সাধারণ। ৳৪০+ হলে হয় CPM চড়া, নয়তো CTR ভাঙা।",
+    drivers:["CPM","CTR","অডিয়েন্সের ক্লিক-প্রবণতা"],
+    action:"CPC বেশি হলে আলাদা করে দেখুন — CPM সমস্যা (অডিয়েন্স/সিজন) নাকি CTR সমস্যা (ক্রিয়েটিভ)।",
+    scale:"CPC স্থিতিশীল রেখে বাজেট বাড়াতে পারলে সেটাই সত্যিকারের স্কেলিং। বাজেট বাড়ানোর পর CPC ২০%+ বাড়লে থামুন।"
+  },
+  clicks:{
+    title:"Clicks — মোট লিংক ক্লিক",
+    what:"কতজন আসলে আপনার লিংকে ক্লিক করেছে। এটাই আপনার কেনা ট্রাফিক।",
+    bands:()=>[{lab:"সিদ্ধান্তের জন্য কম",min:null,max:50,tone:"bad"},{lab:"প্রাথমিক ইঙ্গিত",min:50,max:150,tone:"warn"},{lab:"ভালো ভলিউম",min:150,max:null,tone:"good"}],
+    note:"অন্তত ১০০ ক্লিক না হওয়া পর্যন্ত ল্যান্ডিং পেজ ভালো না খারাপ — এই বিচারটা করবেন না।",
+    drivers:["Impressions","CTR"],
+    action:"ক্লিক আসছে কিন্তু বিক্রি নেই? সমস্যা অ্যাডে নয়, পেজ বা অফারে।",
+    scale:"দিনে ১০০+ ক্লিক থাকলে ল্যান্ডিং পেজ A/B টেস্ট শুরু করা যায়।"
+  },
+  lpv:{
+    title:"Landing Page Views — পেজ আসলেই খুলেছে",
+    what:"ক্লিকের পর যতজনের পেজ আসলে লোড হয়েছে। Clicks আর LP Views-এর ফারাকটাই আপনার সাইট স্পিডের বিল।",
+    bands:()=>[{lab:"বড় লিক",min:null,max:65,tone:"bad"},{lab:"চলনসই",min:65,max:80,tone:"warn"},{lab:"স্বাস্থ্যকর",min:80,max:null,tone:"good"},{isRate:true}],
+    rate:r=>r.lpRate, rateLab:"Click → LP View রেট",
+    note:"৩ সেকেন্ডের বেশি লোড নিলে প্রায় অর্ধেক মোবাইল ইউজার চলে যায় — এই টাকাটা পুরোপুরি নষ্ট।",
+    drivers:["সাইট স্পিড ও হোস্টিং","ভারী ইমেজ/পপ-আপ","ভুল বা ভাঙা লিংক"],
+    action:"রেট ৭০%-এর নিচে হলে PageSpeed টেস্ট করুন, ইমেজ কমপ্রেস করুন, পপ-আপ দেরিতে দেখান।",
+    scale:"এই লিক না সারিয়ে বাজেট বাড়ানো মানে ফুটো বালতিতে বেশি পানি ঢালা।"
+  },
+  atc:{
+    title:"Add to Cart — কার্টে যোগ",
+    what:"পেজে ঢোকা মানুষের মধ্যে কতজন কার্টে দিল। এটা অফার ও প্রোডাক্ট পেজের রায়।",
+    bands:()=>[{lab:"দুর্বল",min:null,max:15,tone:"bad"},{lab:"স্বাভাবিক",min:15,max:25,tone:"warn"},{lab:"ভালো",min:25,max:null,tone:"good"},{isRate:true}],
+    rate:r=>r.atcRate, rateLab:"LP View → ATC রেট",
+    note:"বাস্তব ইকমার্সে ৮–১৫% সাধারণ; এই ল্যাবের বেসলাইন ২৪% ধরা হয়েছে যাতে ফানেলের প্রভাবটা পরিষ্কার দেখা যায়।",
+    drivers:["প্রোডাক্ট পেজের ছবি, দাম, রিভিউ","ডেলিভারি চার্জ কোথায় দেখাচ্ছে","CTA বাটন কত স্পষ্ট","অ্যাডে দেওয়া প্রতিশ্রুতি পেজে আছে কি না"],
+    action:"অ্যাডের অফার আর পেজের হেডলাইন এক করুন — মিল না থাকলে মানুষ ফিরে যায়।",
+    scale:"ATC রেট ভালো কিন্তু Purchase কম হলে সমস্যা checkout-এ, ট্রাফিকে নয়।"
+  },
+  purchases:{
+    title:"Purchases — মোট অর্ডার",
+    what:"পুরো ফানেলের শেষ ফল। Meta-র অ্যালগরিদমও এই সিগন্যাল দিয়েই শেখে।",
+    bands:()=>[{lab:"লার্নিং শেষ হয়নি",min:null,max:50,tone:"bad"},{lab:"স্থিতিশীল হচ্ছে",min:50,max:100,tone:"warn"},{lab:"পরিণত",min:100,max:null,tone:"good"},{isPeriod:true}],
+    note:"Meta-র নিয়ম: প্রতি ad set-এ সপ্তাহে ~৫০ কনভার্সন হলে learning phase শেষ হয় ও ডেলিভারি স্থিতিশীল হয়।",
+    drivers:["পুরো ফানেলের প্রতিটি ধাপ","অফার ও চেকআউট","বাজেট (ভলিউম)"],
+    action:"সপ্তাহে ৫০ অর্ডারের নিচে থাকলে ad set একসাথে করুন (কনসলিডেট), আলাদা করে ভাঙবেন না।",
+    scale:"সাপ্তাহিক ৫০ কনভার্সন পার হলেই vertical scaling শুরু করার আসল সময়।"
+  },
+  cpa:{
+    title:"CPA — প্রতি অর্ডারে খরচ",
+    what:"একটা অর্ডার আনতে বিজ্ঞাপনে কত খরচ হলো। আপনার মার্জিনের সাথে তুলনা না করলে এই নাম্বারের কোনো মানে নেই।",
+    bands:()=>{const b=beCpa();return[{lab:"লাভজনক",min:null,max:b*0.7,tone:"good"},{lab:"ব্রেকইভেনের কাছে",min:b*0.7,max:b,tone:"warn"},{lab:"লস",min:b,max:null,tone:"bad"}];},
+    note:()=>`আপনার মার্জিন ${S.margin}% ও AOV ${money(S.aov)} ধরে ব্রেকইভেন CPA = ${money(beCpa())}। এর নিচে থাকলেই কেবল লাভ।`,
+    drivers:["CPC (ট্রাফিকের দাম)","কনভার্শন রেট (পেজ + অফার)","AOV নয় — CPA-তে AOV-র হাত নেই"],
+    action:"CPA বেশি হলে দুটো পথ: ট্রাফিক সস্তা করুন (ক্রিয়েটিভ/অডিয়েন্স) অথবা কনভার্শন বাড়ান (পেজ/অফার)।",
+    scale:"CPA ব্রেকইভেনের ৭০%-এর নিচে থাকলে স্কেল করার জায়গা আছে — বাজেট বাড়ালে CPA কিছুটা বাড়বে, সেই বাফারটা দরকার।"
+  },
+  roas:{
+    title:"ROAS — বিজ্ঞাপন খরচের বিপরীতে আয়",
+    what:"১ টাকা খরচে কত টাকা বিক্রি এসেছে। মার্জিন ছাড়া ROAS বিচার করা যায় না।",
+    bands:()=>{const b=beRoas();return[{lab:"লস",min:null,max:b,tone:"bad"},{lab:"ব্রেকইভেন জোন",min:b,max:b*1.5,tone:"warn"},{lab:"স্কেল করার মতো",min:b*1.5,max:null,tone:"good"}];},
+    note:()=>`${S.margin}% মার্জিনে ব্রেকইভেন ROAS = ${nd(beRoas(),2)}x। স্কেল করার আগে অন্তত ${nd(beRoas()*1.5,2)}x চাই, কারণ বাজেট বাড়ালে ROAS সাধারণত কিছুটা পড়ে।`,
+    drivers:["AOV","CPA","পুরো ফানেলের কনভার্শন রেট"],
+    action:"ROAS ব্রেকইভেনের নিচে থাকলে বাজেট বাড়াবেন না — আগে বটলনেক সারান।",
+    scale:"ব্রেকইভেনের ১.৫× এর উপরে + যথেষ্ট ডেটা = প্রতি ২ দিনে ২০–৩০% বাজেট বাড়ানোর সবুজ সংকেত।"
+  },
+  revenue:{
+    title:"Revenue — মোট বিক্রি",
+    what:"Purchases × AOV। খরচ বাদ দেওয়া হয়নি, তাই একে লাভ ভাববেন না।",
+    bands:()=>{const sp=S.budget;return[{lab:"খরচের নিচে",min:null,max:sp,tone:"bad"},{lab:"খরচের ১–৩ গুণ",min:sp,max:sp*3,tone:"warn"},{lab:"খরচের ৩ গুণের বেশি",min:sp*3,max:null,tone:"good"}];},
+    note:"লাভ = Revenue × মার্জিন − বিজ্ঞাপন খরচ। এই ল্যাব গ্রস কন্ট্রিবিউশন দেখায়, প্রোডাক্ট কস্ট আলাদা।",
+    drivers:["Purchases","AOV — bundle/upsell দিয়ে বাড়ে"],
+    action:"CPA কমাতে না পারলে AOV বাড়ান — একই খরচে বেশি রেভিনিউ মানে বেশি ROAS।",
+    scale:"AOV ২০% বাড়াতে পারলে একই CPA-তেই ROAS ২০% বাড়ে — স্কেলিংয়ের সবচেয়ে অবহেলিত লিভার।"
+  }
+};
+
+/* ============ স্লাইডার / লিভারের ব্যাখ্যা ============ */
+const LEVERS={
+  creative:{
+    title:"Creative Quality (Hook) — ক্রিয়েটিভের মান",
+    what:"ভিডিওর প্রথম ৩ সেকেন্ড, থাম্বনেইল আর প্রাইমারি টেক্সট — মানুষ স্ক্রল থামাবে কি না তা এখানেই ঠিক হয়। এই ল্যাবে ০ = কেউ তাকায় না, ১০০ = স্ক্রল থামিয়ে দেয়।",
+    chain:["Creative ↑","CTR ↑","Relevance ↑","CPM ↓","CPC ↓","CPA ↓","ROAS ↑"],
+    real:["একই অফারে ৩–৫টা ভিন্ন হুক/অ্যাঙ্গেল বানান","UGC ও রিভিউ-স্টাইল ভিডিও সাধারণত বেশি CTR দেয়","প্রথম ফ্রেমে টেক্সট ওভারলে দিয়ে অফার দেখান","প্রতি ২–৩ সপ্তাহে নতুন ব্যাচ আপলোড করুন"],
+    warn:"এটাই সবচেয়ে বড় লিভার — কারণ এটা একসাথে CTR বাড়ায় আর CPM কমায়, দুই দিক থেকেই CPA-তে কাজ করে।"
+  },
+  audience:{
+    title:"Audience Broadness — অডিয়েন্স কত চওড়া",
+    what:"টার্গেটিং কতটা সরু। ০ = খুব ছোট ইন্টারেস্ট স্ট্যাক (কয়েক হাজার মানুষ), ১০০ = broad/Advantage+ (২০ লাখ+)। ছোট পুকুরে বেশি জাল ফেললে মাছের দাম বাড়ে — অডিয়েন্সও তেমন।",
+    chain:["Audience সরু","প্রতি ব্যক্তির জন্য প্রতিযোগিতা ↑","CPM ↑","Impressions ↓","Clicks ↓","Purchases ↓"],
+    real:["Detailed targeting expansion চালু রাখুন","1–3% lookalike দিয়ে শুরু, পরে broad-এ যান","একই ইন্টারেস্ট একাধিক ad set-এ দিলে নিজের সাথেই bid করবেন (overlap)","বাজেট বাড়ানোর আগে অডিয়েন্স চওড়া করুন"],
+    warn:"খুব broad হলে অডিয়েন্স পাতলা হতে পারে — তবে কনভার্সন ডেটা যথেষ্ট থাকলে Meta নিজেই ভালো মানুষ খুঁজে নেয়।"
+  },
+  competition:{
+    title:"Market Competition / সিজন",
+    what:"আপনার অডিয়েন্সের জন্য এই মুহূর্তে কতজন advertiser bid করছে। Eid, Q4, ১১.১১, ব্ল্যাক ফ্রাইডে — এই সময়ে auction-এর দাম লাফিয়ে বাড়ে।",
+    chain:["Competition ↑","CPM ↑","CPC ↑","CPA ↑","ROAS ↓"],
+    real:["সিজনে CPM বাড়বেই — এটা আপনার নিয়ন্ত্রণে নেই","পুষিয়ে নিতে হবে অফার, AOV আর ক্রিয়েটিভ দিয়ে","পিক ডেট-এর ২–৩ সপ্তাহ আগে রিটার্গেটিং পুল তৈরি রাখুন","অফ-সিজনে একই ক্রিয়েটিভ হঠাৎ ভালো করে — কারণ auction হালকা"],
+    warn:"সিজনে CPA বাড়া মানেই ক্যাম্পেইন খারাপ নয় — ব্রেকইভেন CPA-র সাথে তুলনা করে দেখুন।"
+  },
+  frequency:{
+    title:"Frequency / Ad Fatigue",
+    what:"গড়ে একজন মানুষ আপনার অ্যাডটা কতবার দেখেছে। ২–৩ পর্যন্ত সাধারণত ঠিক আছে; এর বেশি হলে বিরক্তি শুরু হয় — CTR পড়ে, Meta তখন CPM বাড়িয়ে দেয়।",
+    chain:["Frequency ↑","CTR ↓","Relevance ↓","CPM ↑","CPC ↑","CPA ↑"],
+    real:["Ads Manager-এ Frequency কলাম যোগ করে প্রতিদিন দেখুন","৩ ছাড়ালে নতুন ক্রিয়েটিভ দিন বা অডিয়েন্স expand করুন","রিটার্গেটিং-এ frequency স্বাভাবিকভাবেই বেশি, সেখানে ৪–৫ও চলে","দিন যত যায় frequency তত বাড়ে — এই ল্যাবের ডেটা রেঞ্জ অপশনে সেটা ধরা আছে"],
+    warn:"Frequency বেশি থাকলে বাজেট বাড়াবেন না — একই ক্লান্ত মানুষকেই বেশি দেখাবে, CPM লাফাবে।"
+  },
+  lpq:{
+    title:"Landing Page Quality — ক্লিকের পরের অভিজ্ঞতা",
+    what:"সাইট কত দ্রুত খোলে, পেজটা কতটা বিশ্বাসযোগ্য, অ্যাডের কথা পেজে আছে কি না। এটা শুধু ক্লিক-পরবর্তী ধাপে কাজ করে — CPM/CTR-এ হাত দেয় না।",
+    chain:["LP Quality ↑","Click→LP View rate ↑","LP→ATC rate ↑","Purchases ↑","CPA ↓"],
+    real:["মোবাইলে ৩ সেকেন্ডের মধ্যে লোড হওয়া চাই","ইমেজ কমপ্রেস, পপ-আপ দেরিতে","অ্যাডের হেডলাইন আর পেজের হেডলাইন এক রাখুন","দাম, ডেলিভারি চার্জ ও রিটার্ন পলিসি আগেই দেখান"],
+    warn:"Clicks আর LP Views-এর ফারাকটাই আপনার সাইট স্পিডের বিল — ২০%-এর বেশি ফারাক মানে টাকা লোডিং স্ক্রিনে মরছে।"
+  },
+  offer:{
+    title:"Offer Strength — অফার কতটা শক্ত",
+    what:"ফ্রি ডেলিভারি, COD, ডিসকাউন্ট, বান্ডল, সহজ চেকআউট — কার্টে দেওয়ার পর মানুষ আসলেই অর্ডার করবে কি না তা এখানেই ঠিক হয়।",
+    chain:["Offer ↑","ATC→Purchase rate ↑","Purchases ↑","CPA ↓","ROAS ↑"],
+    real:["ফ্রি/ফ্ল্যাট ডেলিভারি সবচেয়ে বেশি কাজ করে","COD থাকলে বাংলাদেশে কনভার্সন উল্লেখযোগ্য বাড়ে","চেকআউটে ফিল্ড কমান, গেস্ট চেকআউট রাখুন","বান্ডল দিয়ে AOV বাড়ালে একই CPA-তেই ROAS বাড়ে"],
+    warn:"উপরের ফানেল (CPM/CTR/CPC) এতে একদমই বদলায় না — অথচ ROAS-এ প্রভাব প্রায় ক্রিয়েটিভের সমান।"
+  }
+};
+
+/* ======================= BUILD DOM ======================= */
+const $=id=>document.getElementById(id);
+
+$("sliders").innerHTML = SLIDERS.map(s=>`
+  <div class="field">
+    <div class="field-head">
+      <span class="lab-wrap"><label for="sl-${s.key}">${s.label}</label><button class="ibtn" type="button" data-lever="${s.key}" aria-label="${s.label} — ব্যাখ্যা দেখুন">ⓘ</button></span>
+      <span class="val" id="v-${s.key}">${S[s.key]}</span>
+    </div>
+    <input type="range" id="sl-${s.key}" min="0" max="100" value="${S[s.key]}" step="1" aria-label="${s.label}">
+    <p class="hint">${s.hint}</p>
+  </div>`).join("");
+
+for(const g in GROUPS){
+  $(g).innerHTML = GROUPS[g].map(k=>`
+    <button class="card" id="c-${k}" data-metric="${k}" type="button">
+      <span class="badge" id="b-${k}"></span>
+      <div class="k">${M[k].lab}</div>
+      <div class="v" id="m-${k}">—</div>
+      <div class="d" id="dl-${k}">— অপরিবর্তিত</div>
+    </button>`).join("");
+}
+
+const GLOSS_ONE={cpm:"হাজার ভিউয়ের দাম",ctr:"কতজন ক্লিক করল",relevance:"Meta-র রেটিং",impressions:"কতবার দেখাল",
+  cpc:"প্রতি ক্লিকের খরচ",clicks:"মোট ক্লিক",lpv:"পেজ আসলে খুলেছে",atc:"কার্টে যোগ",
+  purchases:"মোট অর্ডার",cpa:"প্রতি অর্ডারে খরচ",roas:"১ টাকায় কত বিক্রি",revenue:"মোট বিক্রি"};
+$("gloss").innerHTML = Object.keys(M).map(k=>`
+  <button class="gitem" type="button" data-metric="${k}">
+    <b>${M[k].lab}</b><span>${GLOSS_ONE[k]}</span></button>`).join("")
+  + SLIDERS.map(s=>`
+  <button class="gitem" type="button" data-lever="${s.key}">
+    <b>${s.label.split(" (")[0].split(" / ")[0]}</b><span>লিভার — কীভাবে কাজ করে</span></button>`).join("");
+
+$("funnel").innerHTML = FUNNEL.map(f=>`
+  <div class="frow">
+    <button class="fl" type="button" data-metric="${f.k}">${f.lab}</button>
+    <div class="ftrack"><div class="fbar" id="f-${f.k}" style="width:100%"></div></div>
+    <span class="fv" id="fv-${f.k}">—</span>
+  </div>`).join("");
+
+/* ======================= HELPERS ======================= */
+function bandOf(k,r){
+  const cfg=STD[k]; if(!cfg) return null;
+  const bands=cfg.bands().filter(b=>b.lab);
+  const v = cfg.rate ? cfg.rate(r) : (cfg.bands().some(b=>b.isPeriod) ? lastProjection.cum.purchases : r[k]);
+  for(const b of bands){
+    if((b.min===null||v>=b.min)&&(b.max===null||v<b.max)) return {band:b,value:v,bands,cfg};
+  }
+  return {band:bands[bands.length-1],value:v,bands,cfg};
+}
+
+/* ======================= RENDER ======================= */
+let prev=compute(S), logScale=false, lastProjection={days:[],cum:{purchases:0}};
+
+function paintTrack(key){
+  $("sl-"+key).style.setProperty("--track",
+    `linear-gradient(90deg, var(--mint-dim) ${S[key]}%, #22323c ${S[key]}%)`);
+}
+
+function render(r, withDelta){
+  for(const g in GROUPS) for(const k of GROUPS[g]){
+    $("m-"+k).textContent = fmt(k,r[k]);
+    const el=$("dl-"+k), d=decOf(k);
+    const shown = +((dispVal(k,r[k])-dispVal(k,prev[k])).toFixed(d));
+    if(!withDelta || shown===0){ el.textContent="— অপরিবর্তিত"; el.className="d"; }
+    else{
+      const up=shown>0, good=(M[k].good==="up")?up:!up;
+      el.textContent=(up?"▲ ":"▼ ")+nd(Math.abs(shown),d)+(M[k].type==="pct"?"%":"");
+      el.className="d "+(good?"good":"bad");
+    }
+    $("c-"+k).classList.toggle("focus", OBJ[S.objective].focus.includes(k));
+    const bo=bandOf(k,r);
+    $("b-"+k).className="badge "+(bo?bo.band.tone:"");
+  }
+
+  const max=r.impressions||1;
+  for(const f of FUNNEL){
+    const v=r[f.k];
+    const w = logScale ? (Math.log10(Math.max(v,1)+1)/Math.log10(max+1))*100 : (v/max)*100;
+    $("f-"+f.k).style.width = clamp(w,1.2,100)+"%";
+    $("fv-"+f.k).textContent = nd(v, v>=1000?0:f.d);
+  }
+
+  renderProjection(r);
+  renderDiagnosis(r);
+}
+
+/* ============ মাল্টি-ডে প্রোজেকশন + স্কেলিং ============ */
+function project(nDays){
+  const growth = 0.6 + (100-S.audience)/40;   // অডিয়েন্স যত সরু, ফাটিগ তত দ্রুত
+  const days=[]; let sp=0,pu=0,rv=0,cl=0,im=0;
+  for(let i=0;i<nDays;i++){
+    const t={...S, frequency:clamp(S.frequency+growth*i,0,100)};
+    const d=compute(t);
+    days.push({day:i+1,roas:d.roas,cpa:d.cpa,purchases:d.purchases,freq:t.frequency});
+    sp+=S.budget; pu+=d.purchases; rv+=d.revenue; cl+=d.clicks; im+=d.impressions;
+  }
+  return {days, cum:{spend:sp,purchases:pu,revenue:rv,clicks:cl,impressions:im,
+    roas: sp>0?rv/sp:0, cpa: pu>0?sp/pu:0}};
+}
+
+function confidenceOf(p){
+  const n=p.cum.purchases;
+  if(n<10) return {lvl:"খুব কম",tone:"bad",txt:`মাত্র ${nd(n,0)} অর্ডার — এই ডেটায় সিদ্ধান্ত নেওয়া জুয়া।`};
+  if(n<30) return {lvl:"দিকনির্দেশক",tone:"warn",txt:`${nd(n,0)} অর্ডার — ইঙ্গিত পাওয়া যায়, কিন্তু নিশ্চিত নয়।`};
+  if(n<50) return {lvl:"গ্রহণযোগ্য",tone:"warn",txt:`${nd(n,0)} অর্ডার — সিদ্ধান্ত নেওয়া যায়, তবে learning phase সবে শেষ হচ্ছে।`};
+  return {lvl:"নির্ভরযোগ্য",tone:"good",txt:`${nd(n,0)} অর্ডার — Meta-র learning phase পার, ডেটা বিশ্বাসযোগ্য।`};
+}
+
+function renderProjection(r){
+  const p=project(S.days); lastProjection=p;
+  const be=beRoas(), conf=confidenceOf(p);
+
+  $("daystats").innerHTML=`
+    <div class="dstat"><div class="k">মোট খরচ (${S.days} দিন)</div><div class="v">${money(p.cum.spend)}</div></div>
+    <div class="dstat"><div class="k">মোট অর্ডার</div><div class="v">${nd(p.cum.purchases,0)}</div></div>
+    <div class="dstat"><div class="k">ব্লেন্ডেড ROAS</div><div class="v" style="color:${p.cum.roas>=be?"var(--up)":"var(--down)"}">${nd(p.cum.roas,2)}x</div></div>
+    <div class="dstat"><div class="k">গড় CPA</div><div class="v">${money(p.cum.cpa)}</div></div>`;
+
+  const maxR=Math.max(...p.days.map(d=>d.roas),be)*1.1;
+  $("chart").innerHTML=p.days.map(d=>{
+    const h=clamp(d.roas/maxR*100,2,100);
+    const cls = d.roas<be ? "neg" : (d.roas<be*1.5 ? "low" : "");
+    return `<div class="col" title="দিন ${d.day}: ROAS ${nd(d.roas,2)}x, CPA ${money(d.cpa)}">
+      <div class="bar ${cls}" style="height:${h}%"></div>
+      <div class="cl">${d.day}</div></div>`;
+  }).join("");
+
+  const first=p.days[0].roas, last=p.days[p.days.length-1].roas;
+  const drop = first>0 ? (first-last)/first*100 : 0;
+  const breakDay = p.days.find(d=>d.roas<be);
+  $("beline").innerHTML =
+    `দৈনিক ROAS · ব্রেকইভেন লাইন <b style="color:var(--warn)">${nd(be,2)}x</b> (মার্জিন ${S.margin}%) · `+
+    (S.days>1
+      ? `দিন ১ → দিন ${S.days}: ${nd(first,2)}x → ${nd(last,2)}x (${drop>0?"−":"+"}${nd(Math.abs(drop),1)}%)`
+        + (breakDay?` · <b style="color:var(--down)">দিন ${breakDay.day}-এ ব্রেকইভেনের নিচে নামছে</b>`:"")
+      : "একদিনের ছবি — ট্রেন্ড দেখতে ৩+ দিন সিলেক্ট করুন");
+
+  renderScaling(r,p,conf,be,drop);
+}
+
+function renderScaling(r,p,conf,be,drop){
+  const ratio = be>0 ? r.roas/be : 0;
+  const narrow = S.audience<25, freqHigh = S.frequency>55 || drop>18;
+  let tone="bad", title="", pill="", steps=[], ladder="";
+
+  const bump=(pct,n)=>{let b=S.budget,out=[];for(let i=0;i<n;i++){out.push(b);b*=1+pct/100;}out.push(b);
+    return out.map((x,i)=>`<span>দিন ${i*2+1}: <b>${money(x)}</b></span>`).join("");};
+
+  if(ratio<1){
+    tone="bad"; title="এখন স্কেল করবেন না"; pill="HOLD / FIX";
+    steps=[`ROAS ${nd(r.roas,2)}x, ব্রেকইভেন ${nd(be,2)}x — প্রতিটা বাড়তি টাকা লস বাড়াবে।`,
+      "ডায়াগনোসিসে যে ধাপ সবচেয়ে দুর্বল, আগে সেটাই সারান।",
+      "বাজেট বাড়ানোর বদলে ২–৩টা নতুন ক্রিয়েটিভ বা শক্ত অফার টেস্ট করুন।"];
+  } else if(ratio<1.3){
+    tone="warn"; title="ব্রেকইভেনের কাছাকাছি — বাজেট নয়, দক্ষতা বাড়ান"; pill="OPTIMIZE";
+    steps=["এখন বাজেট বাড়ালে CPA বেড়ে সহজেই লসে চলে যাবেন।",
+      `AOV ${money(S.aov)} থেকে ২০% বাড়াতে পারলে (bundle/upsell) ROAS একাই ${nd(r.roas*1.2,2)}x হয়।`,
+      "ল্যান্ডিং পেজ ও চেকআউট ঠিক করে আগে বাফার তৈরি করুন।"];
+  } else if(conf.tone==="bad"){
+    tone="warn"; title="সিগন্যাল ভালো, কিন্তু ডেটা কম"; pill="WAIT";
+    steps=[`${S.days} দিনে মাত্র ${nd(p.cum.purchases,0)} অর্ডার — এত কম ডেটায় স্কেল করলে ভাগ্যের উপর বাজি।`,
+      "একই বাজেটে আরও ২–৩ দিন চলতে দিন, ৩০+ অর্ডার হলে সিদ্ধান্ত নিন।",
+      "এই সময়ে ad set এডিট করবেন না — learning phase রিসেট হয়ে যাবে।"];
+  } else if(freqHigh){
+    tone="warn"; title="Horizontal scaling করুন — বাজেট বাড়াবেন না"; pill="HORIZONTAL";
+    steps=[`Frequency বেশি${drop>18?` এবং ${S.days} দিনে ROAS ${nd(drop,0)}% পড়েছে`:""} — একই অডিয়েন্স ক্লান্ত হয়ে গেছে।`,
+      "এখন বাজেট বাড়ালে একই মানুষকেই বারবার দেখাবে, CPM লাফাবে।",
+      "ad set ডুপ্লিকেট করে নতুন lookalike (1–3%) ও broad অডিয়েন্সে দিন।",
+      "৩–৫টা নতুন হুক/অ্যাঙ্গেল আপলোড করুন — ক্রিয়েটিভই আসল স্কেলিং ইউনিট।"];
+  } else if(narrow){
+    tone="warn"; title="আগে অডিয়েন্স চওড়া করুন, তারপর বাজেট"; pill="EXPAND FIRST";
+    steps=["অডিয়েন্স খুব সরু — বাজেট বাড়ালেই CPM লাফিয়ে বাড়বে, কারণ একই ছোট পুকুরে বেশি টাকা ঢালছেন।",
+      "Broad বা 1–5% lookalike-এ ডুপ্লিকেট করুন, detailed targeting expansion চালু রাখুন।",
+      "নতুন অডিয়েন্স স্থিতিশীল হলে তবেই বাজেট বাড়ান।"];
+  } else if(ratio>=2 && conf.tone==="good"){
+    tone="ok"; title="আক্রমণাত্মকভাবে স্কেল করার সময়"; pill="SCALE HARD";
+    steps=[`ROAS ব্রেকইভেনের ${nd(ratio,1)} গুণ, সাথে ${nd(p.cum.purchases,0)} অর্ডারের শক্ত ডেটা।`,
+      "পথ ১ (নিরাপদ): প্রতি ২ দিনে ২০–৩০% বাজেট বাড়ান, নিচের ল্যাডার অনুযায়ী।",
+      "পথ ২ (দ্রুত): ad set ডুপ্লিকেট করে ২× বাজেটে চালু করুন, মূলটা অক্ষত রাখুন।",
+      "একটা CBO ক্যাম্পেইনে সেরা ক্রিয়েটিভগুলো একসাথে দিন।",
+      "প্রতিদিন Frequency আর CPM দেখুন — এই দুটোই প্রথম সতর্কবাণী দেয়।"];
+    ladder=bump(25,4);
+  } else {
+    tone="ok"; title="ধাপে ধাপে vertical scaling শুরু করুন"; pill="SCALE STEADY";
+    steps=[`ROAS ${nd(r.roas,2)}x — ব্রেকইভেনের ${nd(ratio,1)} গুণ, ${conf.txt}`,
+      "প্রতি ২ দিনে ২০% করে বাজেট বাড়ান — এক লাফে ২০%+ বাড়ালে learning phase রিসেট হয়।",
+      "প্রতিটা ধাপের পর ২ দিন অপেক্ষা করে CPA দেখুন; খারাপ হলে আগের ধাপে ফিরে যান।",
+      "পাশাপাশি নতুন ক্রিয়েটিভ পাইপলাইনে রাখুন — ফাটিগ আসবেই।"];
+    ladder=bump(20,4);
+  }
+
+  $("scaleAdvice").innerHTML=`
+    <div class="verdict ${tone==="ok"?"":tone}">
+      <div class="vtitle">${title}<span class="pill">${pill}</span></div>
+      <div style="font-size:12.5px;color:var(--muted)">ডেটার নির্ভরযোগ্যতা: <b style="color:var(--ink)">${conf.lvl}</b> — ${conf.txt}</div>
+      <ol class="steps">${steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+      ${ladder?`<div class="ladder">${ladder}</div>`:""}
+    </div>`;
+}
+
+/* ============ ডায়াগনোসিস + সেনসিটিভিটি ============ */
+const BENCH={ctr:1.56,lpRate:81.5,atcRate:24,buyRate:57.6,cpm:338};
+function renderDiagnosis(r){
+  const stages=[
+    {n:"CPM (মিডিয়া কস্ট)",v:money(r.cpm),score:BENCH.cpm/r.cpm,
+     fix:"অডিয়েন্স broad করুন, ক্রিয়েটিভ রিফ্রেশ করুন, বা কম-প্রতিযোগিতার সময়ে চালান।"},
+    {n:"CTR (হুক)",v:nd(r.ctr,2)+"%",score:r.ctr/BENCH.ctr,
+     fix:"প্রথম ৩ সেকেন্ডের হুক আর থাম্বনেইল বদলান — এটাই সবচেয়ে বড় লিভার।"},
+    {n:"Click → LP View",v:nd(r.lpRate,1)+"%",score:r.lpRate/BENCH.lpRate,
+     fix:"সাইট স্পিড ঠিক করুন, পপ-আপ কমান — ক্লিকের টাকা পেজ লোডেই নষ্ট হচ্ছে।"},
+    {n:"LP View → Add to Cart",v:nd(r.atcRate,1)+"%",score:r.atcRate/BENCH.atcRate,
+     fix:"প্রোডাক্ট পেজে দাম, ছবি, রিভিউ আর CTA পরিষ্কার করুন।"},
+    {n:"ATC → Purchase",v:nd(r.buyRate,1)+"%",score:r.buyRate/BENCH.buyRate,
+     fix:"চেকআউট ছোট করুন, COD/ফ্রি ডেলিভারি দিন — এখানে কার্ট ফেলে চলে যাচ্ছে।"}
+  ];
+  $("stages").innerHTML=stages.map(s=>{
+    const p=clamp(s.score*70,3,100), cls=s.score>=.95?"":(s.score>=.75?"warn":"bad");
+    return `<div class="stage-row"><span style="color:var(--muted)">${s.n}</span>
+      <span class="sv">${s.v}</span>
+      <span class="meter"><i class="${cls}" style="width:${p}%"></i></span></div>`;
+  }).join("");
+
+  const worst=stages.reduce((a,b)=>a.score<b.score?a:b);
+  const be=beRoas(), ratio=r.roas/be;
+  const health = ratio>=1.5?"ok":(ratio>=1?"warn":"bad");
+  const label = ratio>=1.5?"স্কেল করার মতো অবস্থা":(ratio>=1?"ব্রেকইভেনের কাছে":"লস করছে");
+  const gross = r.revenue*S.margin/100 - S.budget;
+
+  $("verdict").className="verdict "+(health==="ok"?"":health);
+  $("verdict").innerHTML=
+    `<b>রায়:</b> ROAS <b>${nd(r.roas,2)}x</b> vs ব্রেকইভেন <b>${nd(be,2)}x</b> — ${label}।
+     দিনে ${money(S.budget)} খরচে ${nd(r.purchases,1)} অর্ডার, CPA ${money(r.cpa)},
+     রেভিনিউ ${money(r.revenue)}; ${S.margin}% মার্জিন ধরে দৈনিক নিট
+     <b style="color:${gross>=0?"var(--up)":"var(--down)"}">${money(gross)}</b>।<br><br>
+     <b>সবচেয়ে দুর্বল ধাপ:</b> ${worst.n} — ${worst.fix}<br>
+     <b>${OBJ[S.objective].name} অবজেক্টিভে</b> মূল বিচার হবে ${OBJ[S.objective].kpi} দিয়ে।`;
+
+  const levers=[
+    {k:"creative",n:"Creative Quality",dir:+10},{k:"offer",n:"Offer Strength",dir:+10},
+    {k:"lpq",n:"Landing Page",dir:+10},{k:"audience",n:"Audience Broad",dir:+10},
+    {k:"frequency",n:"Frequency কমানো",dir:-10},{k:"competition",n:"কম প্রতিযোগিতা",dir:-10}
+  ].map(l=>{
+    const t={...S}; t[l.k]=clamp(S[l.k]+l.dir,0,100);
+    const lift=r.roas>0?(compute(t).roas-r.roas)/r.roas*100:0;
+    return {...l,lift,moved:t[l.k]!==S[l.k]};
+  }).sort((a,b)=>b.lift-a.lift);
+  const top=Math.max(...levers.map(l=>Math.abs(l.lift)),.01);
+  $("sens").innerHTML=levers.map(l=>`
+    <div class="sens-row"><span class="sl">${l.n}</span>
+      <span class="sbar"><i style="width:${clamp(Math.abs(l.lift)/top*100,1,100)}%"></i></span>
+      <span class="sp" style="color:${l.lift>0?"var(--up)":"var(--dim)"}">${l.moved?(l.lift>0?"+":"")+nd(l.lift,1)+"%":"সীমায়"}</span>
+    </div>`).join("");
+}
+
+/* ======================= MODAL ======================= */
+function bandRange(k,b,cfg){
+  const isRate = !!cfg.rate, isMoney = M[k].type==="money" && !isRate;
+  const f = v => isRate ? nd(v,0)+"%"
+              : isMoney ? money(v)
+              : M[k].type==="pct" ? nd(v,1)+"%"
+              : M[k].type==="x" ? nd(v,2)+"x"
+              : M[k].type==="score" ? nd(v,1)
+              : n0(v);
+  if(b.min===null) return "< "+f(b.max);
+  if(b.max===null) return "> "+f(b.min);
+  return f(b.min)+" – "+f(b.max);
+}
+
+function openMetric(k){
+  const r=compute(S), cfg=STD[k], bo=bandOf(k,r);
+  $("mLab").textContent=M[k].lab;
+  $("mTitle").textContent=cfg.title;
+  $("mVal").innerHTML = fmt(k,r[k]) +
+    (cfg.rate?` <span style="font-size:14px;color:var(--muted)">· ${cfg.rateLab} ${nd(cfg.rate(r),1)}%</span>`:"");
+
+  const isPeriod = cfg.bands().some(b=>b.isPeriod);
+  const bands=bo.bands.map(b=>{
+    const on = b===bo.band;
+    return `<div class="band ${b.tone} ${on?"on":""}">
+      <span class="bl">${b.lab}</span>
+      <span class="br">${bandRange(k,b,cfg)}</span>
+      ${on?'<span class="me">◀ আপনি এখানে</span>':""}</div>`;
+  }).join("");
+
+  const note = typeof cfg.note==="function"?cfg.note():cfg.note;
+
+  $("mBody").innerHTML=`
+    <div class="mblock"><h4>কী মাপে</h4><p>${cfg.what}</p></div>
+    <div class="mblock"><h4>স্ট্যান্ডার্ড${isPeriod?` (${S.days} দিনে মোট)`:""}${cfg.rate?" — রেট হিসেবে":""}</h4>${bands}
+      <p style="margin-top:9px;font-size:12.5px;color:var(--dim)">${note}</p></div>
+    <div class="mblock"><h4>কে এটাকে নাড়ায়</h4><ul>${cfg.drivers.map(d=>`<li>${d}</li>`).join("")}</ul></div>
+    <div class="mblock"><h4>এখন কী করবেন</h4><p>${cfg.action}</p></div>
+    <div class="mblock"><h4>স্কেলিং ইঙ্গিত</h4><p>${cfg.scale}</p></div>`;
+
+  $("backdrop").classList.add("on");
+  $("mClose").focus();
+  document.body.style.overflow="hidden";
+}
+function closeModal(){ $("backdrop").classList.remove("on"); document.body.style.overflow=""; }
+$("mClose").addEventListener("click",closeModal);
+$("backdrop").addEventListener("click",e=>{ if(e.target===$("backdrop")) closeModal(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
+function openLever(k){
+  const L=LEVERS[k], v=S[k];
+  $("mLab").textContent="লিভার";
+  $("mTitle").textContent=L.title;
+  $("mVal").innerHTML = `${v} <span style="font-size:14px;color:var(--muted)">/ ১০০ — এখনকার সেটিং</span>`;
+  $("mBody").innerHTML=`
+    <div class="mblock"><h4>কী জিনিস</h4><p>${L.what}</p></div>
+    <div class="mblock"><h4>কোন পথে প্রভাব ফেলে</h4>
+      <div class="chain">${L.chain.map((c,i)=>(i?'<u>→</u>':'')+`<i>${c}</i>`).join("")}</div></div>
+    <div class="mblock"><h4>বাস্তবে কীভাবে বদলাবেন</h4><ul>${L.real.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    <div class="mblock"><h4>মনে রাখবেন</h4><p>${L.warn}</p></div>`;
+  $("backdrop").classList.add("on"); $("mClose").focus(); document.body.style.overflow="hidden";
+}
+
+document.addEventListener("click",e=>{
+  const m=e.target.closest("[data-metric]");
+  if(m){ openMetric(m.dataset.metric); return; }
+  const l=e.target.closest("[data-lever]");
+  if(l){ openLever(l.dataset.lever); }
+});
+
+/* ======================= CAUSALITY LOG ======================= */
+const logBox=$("log");
+function pushLog(html,tone,tag){
+  if(logBox.querySelector(".empty")) logBox.innerHTML="";
+  const d=document.createElement("div");
+  d.className="entry "+(tone||"");
+  d.innerHTML=`<span class="t">${tag}</span>${html}`;
+  logBox.prepend(d);
+  while(logBox.children.length>12) logBox.lastChild.remove();
+}
+const N=v=>`<span class="n">${v}</span>`, NB=v=>`<span class="n bad">${v}</span>`;
+
+function explain(key,dir,r){
+  const up=dir>0;
+  switch(key){
+    case "creative": return up
+      ? [`<span class="tag">Creative Quality</span> বাড়ানোয় CTR হয়েছে ${N(nd(r.ctr,2)+"%")} → বেশি ক্লিক মানে Relevance ভালো (${nd(r.relevance,1)}/10) → Meta সেটাকে reward করে CPM কমায় (এখন ${N(money(r.cpm))}) → কম CPM + বেশি CTR মিলে CPC কমছে (${N(money(r.cpc))}) → একই বাজেটে বেশি ক্লিক-পারচেজ, তাই CPA/ROAS ভালো হচ্ছে।`,"","Creative Quality"]
+      : [`<span class="tag">Creative Quality</span> কমানোয় CTR নেমেছে ${NB(nd(r.ctr,2)+"%")} → Relevance কমে ${nd(r.relevance,1)}/10 → Meta কম রিলেভেন্ট অ্যাডকে বেশি দামে দেখায়, CPM বেড়ে ${NB(money(r.cpm))} → CPC ${NB(money(r.cpc))} → CPA বেড়ে ${NB(money(r.cpa))}, ROAS পড়ে ${nd(r.roas,2)}x।`,"bad","Creative Quality"];
+    case "audience": return up
+      ? [`<span class="tag">Audience</span> Broad করায় Meta-র বেছে নেওয়ার মানুষ বেড়েছে → প্রতিযোগিতা কমে CPM নামছে ${N(money(r.cpm))} → একই বাজেটে বেশি Impression (${N(n0(r.impressions))}) → নিচের Clicks/Purchase-ও বাড়ছে। তবে অতিরিক্ত broad হলে অডিয়েন্স কোয়ালিটি পাতলা হতে পারে।`,"","Audience Broadness"]
+      : [`<span class="tag">Audience</span> Narrow করায় সেই ছোট গ্রুপের জন্য প্রতিযোগিতা বেড়ে গেছে → CPM বেড়ে ${NB(money(r.cpm))} → একই বাজেটে কম Impression (${NB(n0(r.impressions))}) → নিচের দিকে Clicks/Purchase-ও কমছে।`,"bad","Audience Broadness"];
+    case "competition": return up
+      ? [`<span class="tag">Market Competition</span> (যেমন Q4/Eid সেল) বাড়ায় একই অডিয়েন্সের জন্য অনেক advertiser bid করছে → CPM বেড়ে ${NB(money(r.cpm))} → CPC-ও বেড়ে ${NB(money(r.cpc))} → CPA বাড়ছে (${NB(money(r.cpa))}), তাই ROAS চাপে পড়ছে — creative/offer দিয়ে compensate করতে হবে।`,"bad","Market Competition"]
+      : [`<span class="tag">Market Competition</span> কমায় auction হালকা হয়েছে → CPM নেমে ${N(money(r.cpm))} → CPC ${N(money(r.cpc))} → CPA কমে ${N(money(r.cpa))}। অফ-সিজনে এজন্যই একই ক্রিয়েটিভ হঠাৎ ভালো করে।`,"","Market Competition"];
+    case "frequency": return up
+      ? [`<span class="tag">Frequency</span> বাড়ায় একই মানুষ বারবার একই অ্যাড দেখছে → ad fatigue → CTR নেমে ${NB(nd(r.ctr,2)+"%")} → Relevance কমায় CPM বাড়ছে (${NB(money(r.cpm))}) → CPC ${NB(money(r.cpc))} → CPA ${NB(money(r.cpa))}। সমাধান: নতুন creative বা অডিয়েন্স expand।`,"bad","Frequency / Fatigue"]
+      : [`<span class="tag">Frequency</span> কমায় অ্যাড আবার নতুন লাগছে → CTR উঠে ${N(nd(r.ctr,2)+"%")} → CPM নামছে ${N(money(r.cpm))} → CPC ${N(money(r.cpc))} → CPA কমে ${N(money(r.cpa))}, ROAS ${nd(r.roas,2)}x।`,"","Frequency / Fatigue"];
+    case "lpq": return [`<span class="tag">Landing Page Quality</span> বদলালেও CPM/CTR (উপরের ফানেল) প্রায় একই থাকছে — কারণ এটা শুধু ক্লিক-পরবর্তী অভিজ্ঞতা বদলায়। এখন Click→LP View rate ${N(nd(r.lpRate,1)+"%")} এবং LP→ATC rate ${N(nd(r.atcRate,1)+"%")}, তাই Purchases ${N(nd(r.purchases,2))} আর CPA ${N(money(r.cpa))}-এ প্রভাব পড়ছে। শিক্ষা: সব মেট্রিক connected হলেও LP Quality মূলত bottom-funnel-কে touch করে।`, up?"":"warn","Landing Page Quality"];
+    case "offer": return [`<span class="tag">Offer Strength</span> বদলানোয় Checkout→Purchase rate এখন ${N(nd(r.buyRate,1)+"%")} → উপরের ফানেল একদম অপরিবর্তিত, কিন্তু Purchases ${N(nd(r.purchases,2))} হওয়ায় CPA ${N(money(r.cpa))} আর ROAS ${N(nd(r.roas,2)+"x")}-এ সরাসরি প্রভাব পড়ছে। সস্তা ট্রাফিক নয় — অনেক সময় ভালো অফারই ROAS বাঁচায়।`, up?"":"warn","Offer Strength"];
+    case "budget": return [`<span class="tag">দৈনিক বাজেট</span> ${N(money(S.budget))} — সব rate একই, শুধু scale বদলাচ্ছে: Impression ${N(n0(r.impressions))}, Purchases ${N(nd(r.purchases,2))}। CPA/ROAS প্রায় অপরিবর্তিত, কারণ CPA হলো efficiency আর বাজেট হলো volume। (বাস্তবে এক লাফে ২০%+ বাড়ালে learning phase রিসেট হয় ও CPM বাড়ে।)`,"neutral","Budget"];
+    case "aov": return [`<span class="tag">AOV</span> ${N(money(S.aov))} — খরচ বা ফানেল বদলায়নি, কিন্তু Revenue ${N(money(r.revenue))} হওয়ায় ROAS ${N(nd(r.roas,2)+"x")}। একই CPA-তেও বেশি AOV মানে বেশি লাভ — bundle/upsell এজন্যই গুরুত্বপূর্ণ।`,"neutral","AOV"];
+    case "margin": return [`<span class="tag">মার্জিন</span> ${N(S.margin+"%")} — ফানেলের কোনো নাম্বার বদলায়নি, কিন্তু ব্রেকইভেন ROAS এখন ${N(nd(beRoas(),2)+"x")} আর ব্রেকইভেন CPA ${N(money(beCpa()))}। একই ROAS কারও জন্য লাভ, কারও জন্য লস — পার্থক্যটা এই মার্জিনেই।`,"neutral","Margin"];
+  }
+}
+
+/* ======================= EVENTS ======================= */
+function update(withDelta){ const r=compute(S); render(r,withDelta!==false); prev=r; return r; }
+
+SLIDERS.forEach(s=>{
+  const el=$("sl-"+s.key); paintTrack(s.key);
+  el.addEventListener("input",()=>{
+    S[s.key]=+el.value; $("v-"+s.key).textContent=el.value; paintTrack(s.key); update(true);
+  });
+  let last=S[s.key];
+  el.addEventListener("change",()=>{
+    const dir=+el.value-last; last=+el.value; if(!dir) return;
+    const [h,t,g]=explain(s.key,dir,compute(S)); pushLog(h,t,g);
+  });
+});
+
+function syncMoneyInputs(){
+  $("budget").value = +(fromBdt(S.budget).toFixed(CUR.code==="USD"?2:0));
+  $("aov").value    = +(fromBdt(S.aov).toFixed(CUR.code==="USD"?2:0));
+  document.querySelectorAll(".cs").forEach(e=>e.textContent=CUR.sym);
+  $("budget").step = CUR.code==="USD" ? 1 : 50;
+  $("aov").step    = CUR.code==="USD" ? 1 : 50;
+}
+["budget","aov"].forEach(k=>{
+  const el=$(k);
+  el.addEventListener("input",()=>{ const v=parseFloat(el.value); if(!isFinite(v)||v<=0) return; S[k]=toBdt(v); update(true); });
+  el.addEventListener("change",()=>{ const [h,t,g]=explain(k,1,compute(S)); pushLog(h,t,g); });
+});
+$("margin").addEventListener("input",()=>{ const v=parseFloat($("margin").value); if(!isFinite(v)||v<=0) return; S.margin=clamp(v,1,95); update(true); });
+$("margin").addEventListener("change",()=>{ const [h,t,g]=explain("margin",1,compute(S)); pushLog(h,t,g); });
+
+$("days").addEventListener("change",()=>{
+  S.days=+$("days").value; update(false);
+  const p=lastProjection, c=confidenceOf(p);
+  pushLog(`<span class="tag">ডেটা রেঞ্জ</span> ${S.days} দিন — মোট খরচ ${N(money(p.cum.spend))}, অর্ডার ${N(nd(p.cum.purchases,0))}, ব্লেন্ডেড ROAS ${N(nd(p.cum.roas,2)+"x")}। দিন যত বাড়ে, একই অডিয়েন্সে Frequency তত বাড়ে — তাই শেষ দিনের ROAS প্রথম দিনের চেয়ে কম। ডেটার নির্ভরযোগ্যতা: ${c.lvl}।`,"neutral","Date Range");
+});
+
+$("curSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  document.querySelectorAll("#curSeg button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  b.setAttribute("aria-pressed","true");
+  if(b.dataset.cur==="USD"){ CUR.code="USD"; CUR.sym="$"; CUR.rate=usdRate; CUR.dec=2; $("rateWrap").style.display="block"; }
+  else { CUR.code="BDT"; CUR.sym="৳"; CUR.rate=1; CUR.dec=0; $("rateWrap").style.display="none"; }
+  syncMoneyInputs(); update(false);
+  pushLog(`<span class="tag">কারেন্সি</span> ${CUR.code} — মডেলের কোনো নাম্বার বদলায়নি, শুধু দেখানোর একক বদলাল (১ ডলার = ৳${usdRate})। বাজেট ${N(money(S.budget))}, AOV ${N(money(S.aov))}।`,"neutral","Currency");
+});
+$("rate").addEventListener("input",()=>{
+  const v=parseFloat($("rate").value); if(!isFinite(v)||v<=0) return;
+  usdRate=v; if(CUR.code==="USD"){ CUR.rate=v; syncMoneyInputs(); update(false); }
+});
+
+document.querySelectorAll(".obj").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".obj").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true");
+    S.objective=b.dataset.obj; $("objNote").textContent=OBJ[S.objective].note; update(true);
+    pushLog(`<span class="tag">Objective</span> বদলে <b>${OBJ[S.objective].name}</b> — auction-এর নাম্বার একই থাকছে, কিন্তু সফলতা মাপার মাপকাঠি বদলাচ্ছে: মূল KPI এখন ${N(OBJ[S.objective].kpi)}। হাইলাইট করা কার্ডগুলোই এই অবজেক্টিভে দেখার মতো।`,"neutral","Objective");
+  });
+});
+
+const PRESETS={
+  baseline:{creative:50,audience:50,competition:50,frequency:20,lpq:50,offer:50,budget:1000,aov:900,
+    msg:"সব ৫০-এ ফিরিয়ে আনা হলো — এটাই তুলনার বেসলাইন।"},
+  winner:{creative:82,audience:65,competition:40,frequency:18,lpq:80,offer:75,budget:1000,aov:1200,
+    msg:"স্ট্রং হুক + broad অডিয়েন্স + দ্রুত পেজ + ভালো অফার — পুরো ফানেলে একসাথে সুবিধা, ROAS তাই লাফ দেয়।"},
+  eid:{creative:55,audience:45,competition:88,frequency:35,lpq:55,offer:55,budget:2000,aov:900,
+    msg:"Eid/Q4-এ প্রতিযোগিতা তুঙ্গে — CPM চড়া, একই creative-এ CPA বেড়ে যায়। এই সময়ে অফার ও AOV দিয়ে লড়তে হয়।"},
+  fatigue:{creative:60,audience:35,competition:55,frequency:78,lpq:55,offer:50,budget:1000,aov:900,
+    msg:"একই অ্যাড অনেক দিন চলছে — frequency উঠে গেছে, CTR পড়ছে, CPM বাড়ছে। ক্লাসিক 'ক্রিয়েটিভ মরে গেছে' সিগন্যাল।"},
+  narrow:{creative:55,audience:12,competition:60,frequency:45,lpq:60,offer:55,budget:1000,aov:900,
+    msg:"খুব সরু অডিয়েন্স = ছোট পুকুরে বেশি জাল — CPM আকাশছোঁয়া, Impression কম, ফানেলের সব ধাপ শুকিয়ে যায়।"},
+  slowlp:{creative:72,audience:55,competition:50,frequency:25,lpq:14,offer:50,budget:1000,aov:900,
+    msg:"উপরের ফানেল দুর্দান্ত (CTR ভালো, CPC কম) কিন্তু পেজ স্লো — টাকা দিয়ে কেনা ক্লিক লোডিং স্ক্রিনেই মরছে।"}
+};
+document.querySelectorAll("[data-preset]").forEach(b=>{
+  b.addEventListener("click",()=>{
+    const p=PRESETS[b.dataset.preset];
+    Object.keys(p).forEach(k=>{ if(k!=="msg") S[k]=p[k]; });
+    SLIDERS.forEach(s=>{ $("sl-"+s.key).value=S[s.key]; $("v-"+s.key).textContent=S[s.key]; paintTrack(s.key); });
+    syncMoneyInputs();
+    const r=update(true);
+    pushLog(`<span class="tag">${b.textContent}</span> — ${p.msg} ফল: CPM ${N(money(r.cpm))}, CTR ${N(nd(r.ctr,2)+"%")}, CPA ${N(money(r.cpa))}, ROAS ${N(nd(r.roas,2)+"x")}।`,"neutral","Scenario");
+  });
+});
+
+$("scaleBtn").addEventListener("click",()=>{
+  logScale=!logScale;
+  $("scaleBtn").textContent="স্কেল: "+(logScale?"লগ":"লিনিয়ার");
+  render(compute(S),false);
+});
+
+/* ======================= INIT ======================= */
+$("objNote").textContent=OBJ[S.objective].note;
+syncMoneyInputs();
+render(prev,false);
+</script>
+</body>
+</html>
