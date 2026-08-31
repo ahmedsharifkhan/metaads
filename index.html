@@ -241,6 +241,36 @@ input[type=range]:focus-visible{outline:2px solid var(--mint);outline-offset:6px
 .band.on .br{color:var(--ink)}
 .band .me{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:inherit}
 
+/* tabs + quiz */
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab-btn{font-family:var(--bn);font-size:13.5px;background:var(--panel);color:var(--muted);
+  border:1px solid var(--line);padding:9px 17px;border-radius:10px;cursor:pointer;transition:.15s}
+.tab-btn:hover{color:var(--ink)}
+.tab-btn.active{background:rgba(79,216,196,.09);color:var(--mint);border-color:var(--mint-dim)}
+.hidden{display:none!important}
+.quiz-card{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:12px;padding:20px}
+.quiz-q{font-size:15.5px;line-height:1.8;margin-bottom:18px;color:#dbe8ec}
+.qrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.qrow:last-of-type{border-bottom:0}
+.qm-name{font-family:var(--mono);font-size:13px;color:var(--ink);min-width:104px}
+.qm-btns{display:flex;gap:6px;flex-wrap:wrap}
+.qm-btn{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:12.5px;
+  padding:8px 13px;border-radius:8px;cursor:pointer;font-family:var(--bn);transition:.15s}
+.qm-btn:hover{color:var(--ink);border-color:var(--mint-dim)}
+.qm-btn.picked{border-color:var(--violet);color:var(--violet);background:rgba(165,139,245,.08)}
+.qm-btn.correct{border-color:var(--up);color:var(--up);background:rgba(79,216,168,.1)}
+.qm-btn.wrong{border-color:var(--down);color:var(--down);background:rgba(244,119,107,.1)}
+.quiz-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.qbtn{background:rgba(79,216,196,.1);border:1px solid var(--mint-dim);color:var(--mint);padding:10px 18px;
+  border-radius:9px;cursor:pointer;font-family:var(--bn);font-size:13.5px;transition:.15s}
+.qbtn:hover{background:rgba(79,216,196,.18)}
+.qbtn.secondary{background:var(--panel);border-color:var(--line);color:var(--muted)}
+.qbtn.secondary:hover{color:var(--ink)}
+.explain-box{margin-top:18px;background:var(--panel-3);border-left:3px solid var(--warn);padding:14px 16px;
+  border-radius:0 8px 8px 0;font-size:13.5px;line-height:1.8;color:#cbdbe1;display:none}
+.explain-box.show{display:block;animation:slide .28s ease-out}
+
 footer{margin-top:24px;color:var(--dim);font-size:12px;text-align:center;line-height:1.9}
 footer a{color:var(--mint-dim);text-decoration:none}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -289,6 +319,12 @@ footer a{color:var(--mint-dim);text-decoration:none}
   </div>
 </header>
 
+<div class="tabs">
+  <button class="tab-btn active" data-tab="sim">🎛 সিমুলেটর</button>
+  <button class="tab-btn" data-tab="quiz">🧠 প্র্যাকটিস কুইজ</button>
+</div>
+
+<div id="tab-sim">
 <div class="grid">
 
   <!-- ===== INPUTS ===== -->
@@ -416,6 +452,35 @@ footer a{color:var(--mint-dim);text-decoration:none}
     </footer>
   </div>
 </div>
+</div><!-- /tab-sim -->
+
+<!-- ===== QUIZ TAB ===== -->
+<div id="tab-quiz" class="hidden">
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <div>
+        <p class="eyebrow" style="margin:0">Predict The Chain Reaction</p>
+        <p style="margin:6px 0 0;color:var(--muted);font-size:13.5px">সিনারিওটা পড়ুন, তারপর প্রতিটা মেট্রিক বাড়বে না কমবে সেটা আগে নিজে ধরুন — তারপর উত্তর মিলান।</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="mini-btn" id="qProgress" style="cursor:default">১ / ৮</span>
+        <span class="mini-btn" id="scoreTag" style="cursor:default;color:var(--mint)">Score: 0 / 0</span>
+      </div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q" id="quizQ"></div>
+      <div id="quizMetrics"></div>
+      <div class="explain-box" id="quizExplain"></div>
+      <div class="quiz-actions">
+        <button class="qbtn" id="checkBtn">উত্তর চেক করুন</button>
+        <button class="qbtn secondary" id="nextBtn">পরের সিনারিও →</button>
+        <button class="qbtn secondary" id="resetScoreBtn">স্কোর রিসেট</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <!-- ===== METRIC MODAL ===== -->
@@ -448,34 +513,36 @@ const CUR = {code:"BDT", sym:"৳", rate:1, dec:0};
 let usdRate = 122;
 
 /* ======================= MODEL =======================
-   স্ক্রিনশট থেকে ক্যালিব্রেট করা (সব টাকায়):
-   CTR       = (1.56 + .0223*(Creative-50)) * fatigue
-   Relevance = 1.4 + 2.25*CTR%
-   CPM       = 338 * f(Relevance) * f(Competition) * f(Audience) * f(Frequency)
+   আপনার মূল ল্যাব ফাইলের হুবহু ফর্মুলা (meta-ads-metrics-lab):
+   baseCTR   = 0.5 + (creative/100) × 2.5      → ০.৫% – ৩.০%
+   fatigue   = 1 − (frequency/100) × 0.55      → ফাটিগ CTR-এর ৫৫% পর্যন্ত খায়
+   relevance = 3 + (CTR − 0.5) × 2.2 − (frequency/100) × 2
+   CPM       = 140 × narrow × competition × fatigue × (1 − relevanceDiscount)
 ====================================================== */
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 
 function compute(s){
-  const fatigue   = clamp(1 - 0.00612*(s.frequency-20), .12, 1.35);
-  const ctr       = clamp((1.56 + 0.0223*(s.creative-50)) * fatigue, .05, 12);
-  const relevance = clamp(1.4 + 2.25*ctr, 1, 10);
+  const baseCTR = 0.5 + (s.creative/100)*2.5;
+  const fatigueFactor = 1 - (s.frequency/100)*0.55;
+  const ctr = Math.max(0.08, baseCTR*fatigueFactor);
+  const relevance = clamp(3 + (ctr-0.5)*2.2 - (s.frequency/100)*2, 1, 10);
 
-  const fRel  = 1.338 - 0.069*relevance;
-  const fComp = 1 + 0.0071*(s.competition-50);
-  const fAud  = 1 - 0.0063*(s.audience-50);
-  const fFreq = 1 + 0.004734*(s.frequency-20);
-  const cpm   = Math.max(20, 338*fRel*fComp*fAud*fFreq);
+  const narrowFactor  = 1 + ((100-s.audience)/100)*0.9;   // সরু অডিয়েন্স = দামি
+  const compFactor    = 1 + (s.competition/100)*1.1;      // প্রতিযোগিতা = দামি
+  const fatigueCpm    = 1 + (s.frequency/100)*0.35;       // ফাটিগ = দামি
+  const relDiscount   = clamp((relevance-5)*0.07, -0.35, 0.35);
+  const cpm = Math.max(15, 140*narrowFactor*compFactor*fatigueCpm*(1-relDiscount));
 
   const impressions = s.budget/cpm*1000;
-  const clicks      = impressions*ctr/100;
+  const clicks      = impressions*(ctr/100);
   const cpc         = clicks>0 ? s.budget/clicks : 0;
 
-  const lpRate  = clamp(0.686 + 0.00258*s.lpq, .18, .97);
-  const lpv     = clicks*lpRate;
-  const atcRate = clamp(0.17 + 0.0014*s.lpq + 0.0006*(s.offer-50), .02, .70);
-  const atc     = lpv*atcRate;
-  const buyRate = clamp(0.5756 + 0.0035*(s.offer-50), .08, .92);
-  const purchases = atc*buyRate;
+  const lpRate   = 0.68 + (s.lpq/100)*0.27;                        // Click → LP View
+  const lpv      = clicks*lpRate;
+  const atcRate  = 0.12 + (s.lpq/100)*0.14 + (s.offer/100)*0.10;   // LP View → ATC
+  const atc      = lpv*atcRate;
+  const buyRate  = 0.35 + (s.offer/100)*0.45;                      // ATC → Purchase
+  const purchases= atc*buyRate;
 
   const cpa     = purchases>0 ? s.budget/purchases : 0;
   const revenue = purchases*s.aov;
@@ -1186,6 +1253,95 @@ $("scaleBtn").addEventListener("click",()=>{
   $("scaleBtn").textContent="স্কেল: "+(logScale?"লগ":"লিনিয়ার");
   render(compute(S),false);
 });
+
+/* ======================= TABS ======================= */
+document.querySelectorAll(".tab-btn").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".tab-btn").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    const t=b.dataset.tab;
+    $("tab-sim").classList.toggle("hidden",t!=="sim");
+    $("tab-quiz").classList.toggle("hidden",t!=="quiz");
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+});
+
+/* ======================= PRACTICE QUIZ ======================= */
+const SCENARIOS=[
+  {q:"আপনি একটা winning ad-এর ওপর সব বাজেট ঢেলে দিয়েছেন এবং একই audience-কে বারবার দেখাচ্ছেন — Frequency বাড়ছে (Ad Fatigue)। নিচের মেট্রিকগুলোর কী হবে?",
+   metrics:[{name:"CTR",ans:"down"},{name:"CPM",ans:"up"},{name:"CPC",ans:"up"},{name:"ROAS",ans:"down"}],
+   explain:"Frequency বাড়লে একই মানুষ বারবার একই অ্যাড দেখে বিরক্ত হয় → CTR কমে। কম CTR মানে Meta-র চোখে Relevance কমে যাওয়া, তাই CPM উল্টো বেড়ে যায় (দ্বিগুণ ধাক্কা)। CPM বাড়া আর CTR কমা — দুটো মিলে CPC অনেকটা বেড়ে যায়। ফলে একই বাজেটে কম Purchase, তাই ROAS কমে। সমাধান: নতুন creative/hook দিয়ে ad refresh করুন।"},
+  {q:"আপনি creative-এর হুক আরও শক্তিশালী করেছেন (প্রথম ৩ সেকেন্ড আকর্ষণীয়)। নিচের মেট্রিকগুলোর কী হবে?",
+   metrics:[{name:"CTR",ans:"up"},{name:"CPM",ans:"down"},{name:"CPC",ans:"down"},{name:"ROAS",ans:"up"}],
+   explain:"ভালো হুক → বেশি মানুষ ক্লিক করে, CTR বাড়ে। CTR বাড়লে Meta-র relevance score ভালো হয়, আর Meta ভালো-perform করা অ্যাডকে সস্তায় impression দেয় — তাই CPM কমে। CPM কমা + CTR বাড়া, দুটোই CPC-কে অনেকটা নিচে নামায়। কম খরচে বেশি ক্লিক-পারচেজ পাওয়ায় ROAS বাড়ে।"},
+  {q:"আপনি অডিয়েন্স খুব Narrow করে ফেলেছেন (broad অফ করে শুধু একটা ছোট custom audience রেখেছেন)। নিচের মেট্রিকগুলোর কী হবে?",
+   metrics:[{name:"CPM",ans:"up"},{name:"Impressions",ans:"down"},{name:"CTR",ans:"same"},{name:"CPA",ans:"up"}],
+   explain:"ছোট অডিয়েন্সে একই জায়গার জন্য বেশি advertiser প্রতিযোগিতা করে, তাই CPM বাড়ে। বাজেট একই থাকলে বেশি CPM মানে কম Impressions কেনা যায়। CTR মূলত creative-নির্ভর, তাই audience narrow করাতে CTR সরাসরি বদলায় না। কম impression-এ কম purchase, একই বাজেটে — তাই CPA বাড়ে।"},
+  {q:"Q4/Eid সিজনে মার্কেট কম্পিটিশন হঠাৎ বেড়ে গেছে (সবাই বিজ্ঞাপন দিচ্ছে)। creative/audience একই রেখে নিচের মেট্রিকগুলোর কী হবে?",
+   metrics:[{name:"CPM",ans:"up"},{name:"CTR",ans:"same"},{name:"CPC",ans:"up"},{name:"CPA",ans:"up"}],
+   explain:"বেশি advertiser একই অডিয়েন্সের জন্য bid করলে auction-এ CPM বেড়ে যায় — এটা purely সাপ্লাই-ডিমান্ড ইফেক্ট, creative না বদলালে CTR মোটামুটি same থাকে। কিন্তু CPM বাড়ায় CPC-ও বাড়ে, শেষে CPA বেড়ে যায়। এই সময় হয় margin বাড়াতে হয়, নয়তো আরও শক্তিশালী creative দিয়ে CTR বাড়িয়ে CPM-এর ধাক্কা সামলাতে হয়।"},
+  {q:"landing page-এর লোডিং স্পিড অনেক ধীর, কিন্তু ad creative ও audience খুব ভালো — CTR বেশ high। নিচের মেট্রিকগুলোর কী হবে?",
+   metrics:[{name:"CTR",ans:"same"},{name:"CPM",ans:"same"},{name:"Clicks vs LP View gap",ans:"up"},{name:"ROAS",ans:"down"}],
+   explain:"CTR আর CPM দুটোই ad-delivery স্তরের জিনিস (impression পর্যন্ত) — এগুলো landing page স্পিডের সাথে সরাসরি সম্পর্কিত না, তাই same থাকে। কিন্তু ক্লিকের পর সাইট স্লো হলে অনেকে পেজ লোড হওয়ার আগেই চলে যায় — Link Click বনাম Landing Page View-এর গ্যাপ বেড়ে যায়। কম মানুষ পেজে পৌঁছালে ATC/Purchase কমে, তাই ROAS নামে।"},
+  {q:"আপনি Offer শক্তিশালী করেছেন — free shipping + COD চালু (creative/audience/CPM অপরিবর্তিত)। নিচের মেট্রিকগুলোর কী হবে?",
+   metrics:[{name:"CPM",ans:"same"},{name:"CTR",ans:"same"},{name:"ATC→Purchase rate",ans:"up"},{name:"ROAS",ans:"up"}],
+   explain:"Offer বদলালে ad delivery (CPM) বা click behavior (CTR) সরাসরি বদলায় না — এগুলো ad-level জিনিস। কিন্তু checkout-এ ঘর্ষণ কমে যাওয়ায় মানুষ বেশি সংখ্যায় purchase complete করে — ATC→Purchase rate বাড়ে, তাই একই বাজেটে বেশি sale, ROAS বাড়ে। শিক্ষা: সব মেট্রিক connected হলেও offer শুধু bottom-funnel-কেই সরাসরি টানে।"},
+  {q:"আপনি bundle অফার দিয়ে AOV ৳৯০০ থেকে ৳১৩০০ করেছেন — বাকি সব একই। নিচের মেট্রিকগুলোর কী হবে?",
+   metrics:[{name:"CPA",ans:"same"},{name:"Purchases",ans:"same"},{name:"Revenue",ans:"up"},{name:"ROAS",ans:"up"}],
+   explain:"AOV বাড়া মানে প্রতি অর্ডারে বেশি টাকা — কিন্তু ট্রাফিকের দাম বা কনভার্শন রেট বদলায়নি, তাই Purchases ও CPA একই থাকে। Revenue = Purchases × AOV, তাই Revenue বাড়ে এবং ROAS-ও সরাসরি বাড়ে। শিক্ষা: CPA কমাতে না পারলে AOV বাড়ান — এটাই সবচেয়ে অবহেলিত লিভার।"},
+  {q:"সব একই রেখে আপনি দৈনিক বাজেট ৳১০০০ থেকে ৳২০০০ করেছেন (auction-এ চাপ পড়েনি ধরে নিন)। নিচের মেট্রিকগুলোর কী হবে?",
+   metrics:[{name:"Impressions",ans:"up"},{name:"Purchases",ans:"up"},{name:"CPA",ans:"same"},{name:"ROAS",ans:"same"}],
+   explain:"বাজেট হলো volume, CPA/ROAS হলো efficiency — দুটো আলাদা জিনিস। বাজেট দ্বিগুণ করলে Impressions ও Purchases দ্বিগুণ হয়, কিন্তু প্রতি অর্ডারের খরচ (CPA) আর ১ টাকায় আয় (ROAS) একই থাকে। বাস্তবে অবশ্য এক লাফে বেশি বাড়ালে learning phase রিসেট হয় ও CPM কিছুটা বাড়ে — তাই ধাপে ধাপে ২০% করে বাড়াতে বলা হয়।"}
+];
+const BN=n=>String(n).replace(/\d/g,d=>"০১২৩৪৫৬৭৮৯"[d]);
+let qIdx=-1, picks={}, score=0, total=0;
+
+function loadScenario(){
+  qIdx=(qIdx+1)%SCENARIOS.length;
+  const s=SCENARIOS[qIdx]; picks={};
+  $("quizQ").textContent=s.q;
+  $("qProgress").textContent=`${BN(qIdx+1)} / ${BN(SCENARIOS.length)}`;
+  $("quizExplain").classList.remove("show"); $("quizExplain").textContent="";
+  $("quizMetrics").innerHTML=s.metrics.map((m,i)=>`
+    <div class="qrow" data-idx="${i}">
+      <div class="qm-name">${m.name}</div>
+      <div class="qm-btns">
+        <button class="qm-btn" data-val="up">বাড়বে ▲</button>
+        <button class="qm-btn" data-val="down">কমবে ▼</button>
+        <button class="qm-btn" data-val="same">প্রায় same</button>
+      </div>
+    </div>`).join("");
+  $("quizMetrics").querySelectorAll(".qrow").forEach(row=>{
+    row.querySelectorAll(".qm-btn").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        if(row.querySelector(".correct")) return;   // চেক করার পর আর বদলানো যাবে না
+        row.querySelectorAll(".qm-btn").forEach(b=>b.classList.remove("picked"));
+        btn.classList.add("picked");
+        picks[row.dataset.idx]=btn.dataset.val;
+      });
+    });
+  });
+}
+$("nextBtn").addEventListener("click",loadScenario);
+$("resetScoreBtn").addEventListener("click",()=>{ score=0; total=0; $("scoreTag").textContent="Score: 0 / 0"; loadScenario(); });
+$("checkBtn").addEventListener("click",()=>{
+  const s=SCENARIOS[qIdx], wrap=$("quizMetrics");
+  if(wrap.querySelector(".correct")) return;
+  let right=0;
+  s.metrics.forEach((m,i)=>{
+    const row=wrap.querySelector(`.qrow[data-idx="${i}"]`), pick=picks[i];
+    row.querySelectorAll(".qm-btn").forEach(b=>{
+      if(b.dataset.val===m.ans) b.classList.add("correct");
+      else if(b.dataset.val===pick) b.classList.add("wrong");
+    });
+    if(pick===m.ans) right++;
+  });
+  score+=right; total+=s.metrics.length;
+  $("scoreTag").textContent=`Score: ${score} / ${total}`;
+  $("quizExplain").innerHTML=`<b style="color:var(--warn)">এই সিনারিওতে ${BN(right)}/${BN(s.metrics.length)} সঠিক।</b><br>${s.explain}`;
+  $("quizExplain").classList.add("show");
+});
+loadScenario();
 
 /* ======================= INIT ======================= */
 $("objNote").textContent=OBJ[S.objective].note;

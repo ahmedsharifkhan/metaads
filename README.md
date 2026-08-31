@@ -122,6 +122,7 @@ Above average = একই বিডে বেশি ডেলিভারি। 
 - **ডেটা রেঞ্জ (১–৩০ দিন)** — Frequency বাড়ার প্রভাব ধরে দৈনিক ROAS চার্ট ও ব্লেন্ডেড ফল
 - **স্কেলিং অ্যাডভাইজার** — বাজেট ল্যাডার সহ
 - **বটলনেক ডায়াগনোসিস + সেনসিটিভিটি র‍্যাংকিং**
+- **প্র্যাকটিস কুইজ ট্যাব** — "Predict The Chain Reaction": ৮টা সিনারিও, প্রতিটায় ৪টা মেট্রিক বাড়বে/কমবে/same ধরতে হয়, স্কোর ও বিস্তারিত ব্যাখ্যা সহ
 - **৬টা প্রিসেট সিনারিও** — Eid/Q4 রাশ, ক্রিয়েটিভ ফাটিগ, ন্যারো অডিয়েন্স, স্লো ল্যান্ডিং পেজ…
 - মোবাইল-ফ্রেন্ডলি, কীবোর্ড অ্যাক্সেসিবল
 
@@ -140,14 +141,24 @@ Above average = একই বিডে বেশি ডেলিভারি। 
 ## 🧮 সিমুলেটরের মডেল
 
 ```
-CTR       = (1.56 + 0.0223 × (Creative − 50)) × fatigue
-Relevance = 1.4 + 2.25 × CTR%
-CPM       = 338 × f(Relevance) × f(Competition) × f(Audience) × f(Frequency)
+baseCTR   = 0.5 + (Creative ÷ 100) × 2.5          → ০.৫% – ৩.০%
+fatigue   = 1 − (Frequency ÷ 100) × 0.55          → ফাটিগ CTR-এর ৫৫% পর্যন্ত খায়
+CTR       = baseCTR × fatigue
+Relevance = 3 + (CTR − 0.5) × 2.2 − (Frequency ÷ 100) × 2
+CPM       = 140 × narrow × competition × fatigue × (1 − relevanceDiscount)
+            narrow      = 1 + ((100 − Audience) ÷ 100) × 0.9
+            competition = 1 + (Competition ÷ 100) × 1.1
+            fatigue     = 1 + (Frequency ÷ 100) × 0.35
+            discount    = clamp((Relevance − 5) × 0.07, −0.35, 0.35)
+
 Impressions = বাজেট ÷ CPM × 1000
-Clicks → LP Views → Add to Cart → Purchases  (প্রতি ধাপে আলাদা রেট)
+Clicks      = Impressions × CTR
+LPV Rate    = 0.68 + (LP Quality ÷ 100) × 0.27
+ATC Rate    = 0.12 + (LP Quality ÷ 100) × 0.14 + (Offer ÷ 100) × 0.10
+ATC→Purchase = 0.35 + (Offer ÷ 100) × 0.45
 ```
 
-বেসলাইন বাংলাদেশি ইকমার্সের সাধারণ রেঞ্জে ক্যালিব্রেট করা (CPM ৳৩৩৮, CTR ১.৫৬%)। এটা শেখার টুল — বাস্তব ক্যাম্পেইনে learning phase, attribution window ও audience overlap-ও কাজ করে।
+ডিফল্ট সেটিংয়ে (সব ৫০, Frequency ২০, বাজেট ৳১০০০, AOV ৳৯০০) ফল দাঁড়ায়: CPM ৳৩৩৮ · CTR ১.৫৬% · Relevance ৪.৯ · Impressions ২,৯৫৫ · CPC ৳২১.৭ · Purchases ৫.১৮ · CPA ৳১৯৩ · ROAS ৪.৬৬x।
 
 ## লাইসেন্স
 
